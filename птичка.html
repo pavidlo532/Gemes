@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flappy Bird</title>
+  <style>
+    :root {
+      --bg1: #70d6ff;
+      --bg2: #c8f1ff;
+      --pipe: #2e9f45;
+      --bird: #ffd23f;
+      --accent: #1f2937;
+      --ground: #d7c08b;
+      --panel: rgba(255,255,255,0.92);
+      --danger: #ef4444;
+      --gold: #f59e0b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, var(--bg1), var(--bg2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      color: var(--accent);
+      transition: background 0.25s ease;
+    }
+
+    .wrap {
+      width: min(100%, 1180px);
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card, .side {
+      background: var(--panel);
+      border-radius: 24px;
+      box-shadow: 0 18px 42px rgba(0,0,0,0.16);
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+
+    .topbar {
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-weight: 700;
+    }
+
+    .title {
+      font-size: 24px;
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .score-pill {
+      min-width: 88px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.74);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.45), 0 8px 20px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .score-label {
+      display: block;
+      font-size: 11px;
+      opacity: 0.75;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 4px;
+    }
+
+    .score-value {
+      display: block;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      touch-action: manipulation;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .side {
+      padding: 18px;
+    }
+
+    h2, h3 {
+      margin: 0 0 12px;
+    }
+
+    p {
+      line-height: 1.45;
+      margin: 8px 0;
+    }
+
+    .section {
+      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .section:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0;
+    }
+
+    .themes, .skins, .difficulty-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .themes {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .skins {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .theme-btn, .skin-btn, .difficulty-btn, .main-btn, .toggle-btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.10);
+    }
+
+    .theme-btn:hover, .skin-btn:hover, .difficulty-btn:hover, .main-btn:hover, .toggle-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .theme-btn.active, .skin-btn.active, .difficulty-btn.active, .toggle-btn.active {
+      outline: 3px solid rgba(0,0,0,0.24);
+    }
+
+    .theme-btn.locked, .skin-btn.locked {
+      opacity: 0.72;
+    }
+
+    .main-btn {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      margin-bottom: 10px;
+    }
+
+    .toggle-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .hint {
+      background: rgba(255,255,255,0.66);
+      border-radius: 16px;
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    .mobile-controls {
+      display: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 12px;
+      z-index: 20;
+      padding: 0 14px max(10px, env(safe-area-inset-bottom));
+      pointer-events: none;
+    }
+
+    .mobile-controls-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      max-width: 520px;
+      margin: 0 auto;
+      pointer-events: auto;
+    }
+
+    .mobile-btn {
+      border: none;
+      border-radius: 18px;
+      min-height: 64px;
+      font-size: 18px;
+      font-weight: 700;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+      background: rgba(255,255,255,0.92);
+      color: var(--accent);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .mobile-btn:active {
+      transform: scale(0.98);
+    }
+
+    .coins-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(245, 158, 11, 0.16);
+      color: #7c4a03;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .mini-note {
+      font-size: 12px;
+      opacity: 0.78;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 940px) {
+      .wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px 10px 96px;
+      }
+
+      .topbar {
+        padding: 12px;
+      }
+
+      .title {
+        font-size: 21px;
+      }
+
+      .score-pill {
+        min-width: 78px;
+        padding: 8px 12px;
+      }
+
+      .score-value {
+        font-size: 20px;
+      }
+
+      .mobile-controls {
+        display: block;
+      }
+    }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="topbar">
+        <div class="title">Flappy Bird Deluxe</div>
+        <div class="scoreboard">
+          <div class="score-pill">
+            <span class="score-label">Счёт</span>
+            <span class="score-value" id="score">0</span>
+          </div>
+          <div class="score-pill">
+            <span class="score-label">Рекорд</span>
+            <span class="score-value" id="best">0</span>
+          </div>
+          <div class="score-pill">
+            <span class="score-label">Монеты</span>
+            <span class="score-value" id="coins">0</span>
+          </div>
+        </div>
+      </div>
+      <canvas id="game" width="760" height="540"></canvas>
+    </div>
+
+    <div class="side">
+      <div class="section">
+        <h2>Управление</h2>
+        <button class="main-btn" id="restartBtn">Старт / Рестарт</button>
+        <div class="toggle-row">
+          <button class="toggle-btn active" id="soundBtn">Звук: ВКЛ</button>
+          <button class="toggle-btn active" id="animBtn">Анимация: ВКЛ</button>
+        </div>
+        <div class="hint" style="margin-top:12px;">
+          <h3>Как играть</h3>
+          <p><b>Пробел</b>, <b>клик</b> или <b>тап</b> — взлететь.</p>
+          <p>За каждую трубу ты получаешь очко и 1 монету.</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Темы</h2>
+        <div class="themes" id="themes"></div>
+      </div>
+
+      <div class="section">
+        <h2>Сложность</h2>
+        <div class="difficulty-list" id="difficultyList"></div>
+      </div>
+
+      <div class="section">
+        <h2>Магазин скинов</h2>
+        <div class="coins-badge">🪙 Баланс: <span id="coinsSide">0</span></div>
+        <div class="skins" id="skins" style="margin-top:12px;"></div>
+        <div class="mini-note">Открытые скины сохраняются в браузере.
+            Разработчик Виталий Барбарис.</div>
+      </div>
+    </div>
+
+  <div class="mobile-controls">
+    <div class="mobile-controls-inner">
+      <button class="mobile-btn" id="mobileFlapBtn">⬆ Взлететь</button>
+      <button class="mobile-btn" id="mobileRestartBtn">⟳ Рестарт</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
+    const coinsEl = document.getElementById('coins');
+    const coinsSideEl = document.getElementById('coinsSide');
+    const themesEl = document.getElementById('themes');
+    const skinsEl = document.getElementById('skins');
+    const difficultyListEl = document.getElementById('difficultyList');
+    const restartBtn = document.getElementById('restartBtn');
+    const mobileFlapBtn = document.getElementById('mobileFlapBtn');
+    const mobileRestartBtn = document.getElementById('mobileRestartBtn');
+    const soundBtn = document.getElementById('soundBtn');
+    const animBtn = document.getElementById('animBtn');
+
+    const THEMES = [
+      { name: 'Небо', bg1: '#70d6ff', bg2: '#c8f1ff', pipe: '#2e9f45', bird: '#ffd23f', accent: '#1f2937', ground: '#d7c08b', panel: 'rgba(255,255,255,0.92)', button: 'linear-gradient(135deg,#4facfe,#00c6ff)' },
+      { name: 'Закат', bg1: '#ff9966', bg2: '#ff5e62', pipe: '#7f5539', bird: '#fff089', accent: '#4a1c1c', ground: '#f7b267', panel: 'rgba(255,245,240,0.92)', button: 'linear-gradient(135deg,#ff9966,#ff5e62)' },
+      { name: 'Лес', bg1: '#7bc96f', bg2: '#d8f3dc', pipe: '#1b5e20', bird: '#f4d35e', accent: '#163020', ground: '#b08968', panel: 'rgba(245,255,245,0.92)', button: 'linear-gradient(135deg,#56ab2f,#a8e063)' },
+      { name: 'Ночь', bg1: '#0f172a', bg2: '#334155', pipe: '#38b000', bird: '#f9c74f', accent: '#e2e8f0', ground: '#6b705c', panel: 'rgba(15,23,42,0.86)', button: 'linear-gradient(135deg,#141e30,#243b55)' },
+      { name: 'Конфетная', bg1: '#ff9a9e', bg2: '#fad0c4', pipe: '#ff4d6d', bird: '#8338ec', accent: '#5a189a', ground: '#ffd6a5', panel: 'rgba(255,250,252,0.94)', button: 'linear-gradient(135deg,#ff9a9e,#fecfef)' },
+      { name: 'Океан', bg1: '#2193b0', bg2: '#6dd5ed', pipe: '#006d77', bird: '#ffddd2', accent: '#083344', ground: '#caffbf', panel: 'rgba(240,252,255,0.92)', button: 'linear-gradient(135deg,#2193b0,#6dd5ed)' }
+    ];
+
+    const DIFFICULTIES = [
+      { id: 'easy', name: 'Лёгкая', speed: 2.3, gap: 180, interval: 116 },
+      { id: 'normal', name: 'Нормальная', speed: 2.8, gap: 155, interval: 102 },
+      { id: 'hard', name: 'Сложная', speed: 3.4, gap: 138, interval: 92 }
+    ];
+
+    const SKINS = [
+      { id: 'classic', name: 'Классика', price: 0, type: 'classic', color: '#ffd23f' },
+      { id: 'ruby', name: 'Рубин', price: 8, type: 'classic', color: '#ef4444' },
+      { id: 'mint', name: 'Мята', price: 12, type: 'classic', color: '#10b981' },
+      { id: 'violet', name: 'Фиолет', price: 16, type: 'classic', color: '#8b5cf6' },
+      { id: 'cyber', name: 'Кибер', price: 20, type: 'cyber', color: '#22d3ee' },
+      { id: 'crown', name: 'Корона', price: 28, type: 'crown', color: '#f59e0b' }
+    ];
+
+    const savedCoins = Number(localStorage.getItem('flappy-coins') || 0);
+    const savedBest = Number(localStorage.getItem('flappy-best') || 0);
+    const savedSkin = localStorage.getItem('flappy-selected-skin') || 'classic';
+    const savedTheme = Number(localStorage.getItem('flappy-theme') || 0);
+    const savedDifficulty = localStorage.getItem('flappy-difficulty') || 'normal';
+    const savedUnlocked = JSON.parse(localStorage.getItem('flappy-unlocked-skins') || '["classic"]');
+
+    const state = {
+      started: false,
+      gameOver: false,
+      score: 0,
+      best: savedBest,
+      coins: savedCoins,
+      themeIndex: savedTheme,
+      selectedSkin: savedSkin,
+      unlockedSkins: new Set(savedUnlocked),
+      difficultyId: savedDifficulty,
+      soundEnabled: true,
+      animationEnabled: true,
+      frame: 0,
+      gravity: 0.46,
+      jump: -7.8,
+      speed: 2.8,
+      pipeGap: 155,
+      spawnInterval: 102,
+      pipeWidth: 84,
+      groundHeight: 92,
+      scorePulse: 0,
+      flashTimer: 0,
+      bird: {
+        x: 150,
+        y: 230,
+        width: 38,
+        height: 30,
+        velocity: 0,
+        rotation: 0,
+        wingPhase: 0,
+        bob: 0
+      },
+      pipes: []
+    };
+
+    function updateHud() {
+      scoreEl.textContent = String(state.score);
+      bestEl.textContent = String(state.best);
+      coinsEl.textContent = String(state.coins);
+      coinsSideEl.textContent = String(state.coins);
+    }
+
+    function saveProgress() {
+      localStorage.setItem('flappy-coins', String(state.coins));
+      localStorage.setItem('flappy-best', String(state.best));
+      localStorage.setItem('flappy-selected-skin', state.selectedSkin);
+      localStorage.setItem('flappy-theme', String(state.themeIndex));
+      localStorage.setItem('flappy-difficulty', state.difficultyId);
+      localStorage.setItem('flappy-unlocked-skins', JSON.stringify([...state.unlockedSkins]));
+    }
+
+    function applyDifficulty(id) {
+      const diff = DIFFICULTIES.find(item => item.id === id) || DIFFICULTIES[1];
+      state.difficultyId = diff.id;
+      state.speed = diff.speed;
+      state.pipeGap = diff.gap;
+      state.spawnInterval = diff.interval;
+      document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.id === id));
+      saveProgress();
+    }
+
+    function setTheme(index) {
+      state.themeIndex = index;
+      const t = THEMES[index];
+      const root = document.documentElement;
+      root.style.setProperty('--bg1', t.bg1);
+      root.style.setProperty('--bg2', t.bg2);
+      root.style.setProperty('--pipe', t.pipe);
+      root.style.setProperty('--bird', t.bird);
+      root.style.setProperty('--accent', t.accent);
+      root.style.setProperty('--ground', t.ground);
+      root.style.setProperty('--panel', t.panel);
+      document.querySelectorAll('.theme-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+      saveProgress();
+      render();
+    }
+
+    function getSkin() {
+      return SKINS.find(item => item.id === state.selectedSkin) || SKINS[0];
+    }
+
+    function setSkin(id) {
+      if (!state.unlockedSkins.has(id)) return;
+      state.selectedSkin = id;
+      document.querySelectorAll('.skin-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.id === id));
+      saveProgress();
+      render();
+    }
+
+    function buySkin(id) {
+      const skin = SKINS.find(item => item.id === id);
+      if (!skin || state.unlockedSkins.has(id)) return;
+      if (state.coins < skin.price) return;
+      state.coins -= skin.price;
+      state.unlockedSkins.add(id);
+      state.selectedSkin = id;
+      updateHud();
+      saveProgress();
+      renderSkinButtons();
+      playSound('coin');
+    }
+
+    function resetGame() {
+      state.started = false;
+      state.gameOver = false;
+      state.score = 0;
+      state.frame = 0;
+      state.flashTimer = 0;
+      state.scorePulse = 0;
+      state.pipes = [];
+      state.bird.y = 230;
+      state.bird.velocity = 0;
+      state.bird.rotation = 0;
+      state.bird.wingPhase = 0;
+      updateHud();
+      render();
+    }
+
+    function startGame() {
+      if (!state.started) {
+        state.started = true;
+        state.gameOver = false;
+      }
+    }
+
+    function flap() {
+      if (state.gameOver) {
+        resetGame();
+        state.started = true;
+      } else {
+        startGame();
+      }
+      state.bird.velocity = state.jump;
+      playSound('flap');
+    }
+
+    function addPipe() {
+      const minTop = 60;
+      const maxTop = canvas.height - state.groundHeight - state.pipeGap - 60;
+      const topHeight = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
+      state.pipes.push({
+        x: canvas.width + 10,
+        top: topHeight,
+        bottomY: topHeight + state.pipeGap,
+        counted: false
+      });
+    }
+
+    function rectHit(a, rx, ry, rw, rh) {
+      return a.x < rx + rw && a.x + a.width > rx && a.y < ry + rh && a.y + a.height > ry;
+    }
+
+    function endGame() {
+      if (state.gameOver) return;
+      state.gameOver = true;
+      state.flashTimer = 16;
+      playSound('hit');
+    }
+
+    function update() {
+      const bird = state.bird;
+      state.frame += 1;
+
+      if (!state.started || state.gameOver) {
+        if (!state.started) {
+          bird.bob = Math.sin(state.frame * 0.08) * 6;
+          bird.wingPhase += state.animationEnabled ? 0.25 : 0;
+        }
+        if (state.flashTimer > 0) state.flashTimer -= 1;
+        if (state.scorePulse > 0) state.scorePulse -= 0.08;
+        return;
+      }
+
+      bird.velocity += state.gravity;
+      bird.y += bird.velocity;
+      bird.rotation = Math.max(-0.65, Math.min(1.2, bird.velocity * 0.08));
+      bird.wingPhase += state.animationEnabled ? 0.42 : 0;
+
+      if (state.frame === 1 || state.frame % state.spawnInterval === 0) {
+        addPipe();
+      }
+
+      for (let i = state.pipes.length - 1; i >= 0; i--) {
+        const pipe = state.pipes[i];
+        pipe.x -= state.speed;
+        const bottomHeight = canvas.height - state.groundHeight - pipe.bottomY;
+
+        if (!pipe.counted && pipe.x + state.pipeWidth < bird.x) {
+          pipe.counted = true;
+          state.score += 1;
+          state.coins += 1;
+          state.scorePulse = 1;
+          updateHud();
+          if (state.score > state.best) {
+            state.best = state.score;
+            updateHud();
+          }
+          saveProgress();
+          playSound('point');
+        }
+
+        if (rectHit(bird, pipe.x, 0, state.pipeWidth, pipe.top) || rectHit(bird, pipe.x, pipe.bottomY, state.pipeWidth, bottomHeight)) {
+          endGame();
+        }
+
+        if (pipe.x + state.pipeWidth < -30) {
+          state.pipes.splice(i, 1);
+        }
+      }
+
+      if (bird.y <= 0 || bird.y + bird.height >= canvas.height - state.groundHeight) {
+        endGame();
+      }
+
+      if (state.flashTimer > 0) state.flashTimer -= 1;
+      if (state.scorePulse > 0) state.scorePulse -= 0.08;
+    }
+
+    function drawBackground() {
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, css('--bg1'));
+      gradient.addColorStop(1, css('--bg2'));
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.globalAlpha = 0.22;
+      for (let i = 0; i < 5; i++) {
+        const x = (canvas.width - ((state.frame * 0.35 + i * 180) % (canvas.width + 160))) - 70;
+        const y = 72 + (i % 3) * 70;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x, y, 22, 0, Math.PI * 2);
+        ctx.arc(x + 26, y - 10, 20, 0, Math.PI * 2);
+        ctx.arc(x + 52, y, 24, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function drawPipes() {
+      ctx.fillStyle = css('--pipe');
+      ctx.strokeStyle = 'rgba(0,0,0,0.16)';
+      ctx.lineWidth = 2;
+
+      for (const pipe of state.pipes) {
+        const bottomHeight = canvas.height - state.groundHeight - pipe.bottomY;
+
+        roundedRect(pipe.x, 0, state.pipeWidth, pipe.top, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        roundedRect(pipe.x - 7, pipe.top - 24, state.pipeWidth + 14, 24, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        roundedRect(pipe.x, pipe.bottomY, state.pipeWidth, bottomHeight, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        roundedRect(pipe.x - 7, pipe.bottomY, state.pipeWidth + 14, 24, 8);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+
+    function drawGround() {
+      const y = canvas.height - state.groundHeight;
+      ctx.fillStyle = css('--ground');
+      ctx.fillRect(0, y, canvas.width, state.groundHeight);
+      ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+      for (let i = 0; i < canvas.width; i += 26) {
+        ctx.beginPath();
+        ctx.moveTo(i, y + 12);
+        ctx.lineTo(i + 15, y + 28);
+        ctx.stroke();
+      }
+    }
+
+    function drawBird() {
+      const bird = state.bird;
+      const skin = getSkin();
+      const baseY = state.started ? bird.y : bird.y + bird.bob;
+      const wingSwing = state.animationEnabled ? Math.sin(bird.wingPhase) * 0.9 : 0;
+
+      ctx.save();
+      ctx.translate(bird.x + bird.width / 2, baseY + bird.height / 2);
+      ctx.rotate(state.started ? bird.rotation : Math.sin(state.frame * 0.04) * 0.08);
+
+      if (skin.type === 'cyber') {
+        ctx.shadowColor = skin.color;
+        ctx.shadowBlur = 18;
+      }
+
+      ctx.fillStyle = skin.type === 'classic' ? skin.color : css('--bird');
+      if (skin.type === 'cyber') ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 18, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.save();
+      ctx.rotate(-0.7 + wingSwing);
+      ctx.fillStyle = skin.type === 'cyber' ? skin.color : 'rgba(255,255,255,0.48)';
+      ctx.beginPath();
+      ctx.ellipse(-4, 5, 9, 5, -0.25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      if (skin.type === 'crown') {
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.moveTo(-8, -14);
+        ctx.lineTo(-2, -24);
+        ctx.lineTo(3, -14);
+        ctx.lineTo(8, -24);
+        ctx.lineTo(13, -14);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(7, -4, 5.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#111';
+      ctx.beginPath();
+      ctx.arc(9, -4, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ff7b00';
+      ctx.beginPath();
+      ctx.moveTo(15, 0);
+      ctx.lineTo(29, -2);
+      ctx.lineTo(15, 6);
+      ctx.closePath();
+      ctx.fill();
+
+      if (skin.type === 'cyber') {
+        ctx.strokeStyle = skin.color;
+        ctx.strokeRect(-10, -8, 20, 16);
+      }
+
+      ctx.restore();
+      ctx.shadowBlur = 0;
+    }
+
+    function drawFloatingScore() {
+      const pulseScale = 1 + Math.max(0, state.scorePulse) * 0.18;
+      ctx.save();
+      ctx.translate(canvas.width / 2, 56);
+      ctx.scale(pulseScale, pulseScale);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+      ctx.lineWidth = 6;
+      ctx.font = 'bold 54px Arial';
+      ctx.strokeText(String(state.score), 0, 0);
+      ctx.fillText(String(state.score), 0, 0);
+      ctx.restore();
+    }
+
+    function drawGameOverCard() {
+      if (!state.gameOver) return;
+
+      const cardW = 340;
+      const cardH = 220;
+      const x = (canvas.width - cardW) / 2;
+      const y = 130;
+
+      ctx.fillStyle = 'rgba(0,0,0,0.26)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      roundedRect(x, y, cardW, cardH, 24);
+      ctx.fillStyle = 'rgba(255,255,255,0.96)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = css('--danger');
+      ctx.font = 'bold 34px Arial';
+      ctx.fillText('Game Over', canvas.width / 2, y + 52);
+
+      ctx.fillStyle = css('--accent');
+      ctx.font = '20px Arial';
+      ctx.fillText(`Счёт: ${state.score}`, canvas.width / 2, y + 98);
+      ctx.fillText(`Рекорд: ${state.best}`, canvas.width / 2, y + 128);
+      ctx.fillText(`Монеты: +${state.score}`, canvas.width / 2, y + 158);
+
+      ctx.fillStyle = '#475569';
+      ctx.font = '16px Arial';
+      ctx.fillText('Нажми пробел, клик или кнопку рестарта', canvas.width / 2, y + 194);
+    }
+
+    function drawStartCard() {
+      if (state.started || state.gameOver) return;
+
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 42px Arial';
+      ctx.fillText('Flappy Bird Deluxe', canvas.width / 2, 180);
+      ctx.font = '22px Arial';
+      ctx.fillText('Нажми пробел или клик, чтобы начать', canvas.width / 2, 226);
+      ctx.font = '18px Arial';
+      ctx.fillText('Покупай скины, меняй тему и сложность', canvas.width / 2, 260);
+    }
+
+    function drawFlash() {
+      if (state.flashTimer <= 0) return;
+      ctx.fillStyle = `rgba(255,255,255,${state.flashTimer / 36})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackground();
+      drawPipes();
+      drawGround();
+      drawBird();
+      drawFloatingScore();
+      drawStartCard();
+      drawGameOverCard();
+      drawFlash();
+    }
+
+    function loop() {
+      update();
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    function roundedRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function css(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    let audioContext = null;
+
+    function getAudio() {
+      if (!audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return null;
+        audioContext = new AudioCtx();
+      }
+      return audioContext;
+    }
+
+    function playTone(freq, duration, type, volume, slideTo = null) {
+      if (!state.soundEnabled) return;
+      const audio = getAudio();
+      if (!audio) return;
+      if (audio.state === 'suspended') audio.resume();
+
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audio.currentTime);
+      if (slideTo) {
+        osc.frequency.exponentialRampToValueAtTime(slideTo, audio.currentTime + duration);
+      }
+      gain.gain.setValueAtTime(0.0001, audio.currentTime);
+      gain.gain.exponentialRampToValueAtTime(volume, audio.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audio.destination);
+      osc.start();
+      osc.stop(audio.currentTime + duration + 0.02);
+    }
+
+    function playSound(name) {
+      if (name === 'flap') playTone(520, 0.08, 'square', 0.03, 780);
+      if (name === 'point') {
+        playTone(700, 0.08, 'triangle', 0.04, 880);
+        setTimeout(() => playTone(900, 0.08, 'triangle', 0.03, 1100), 60);
+      }
+      if (name === 'hit') playTone(220, 0.22, 'sawtooth', 0.05, 90);
+      if (name === 'coin') playTone(880, 0.1, 'triangle', 0.04, 1320);
+    }
+
+    function handleInput(event) {
+      if (event) event.preventDefault();
+      flap();
+    }
+
+    function handleRestart(event) {
+      if (event) event.preventDefault();
+      resetGame();
+    }
+
+    function bindPress(button, handler) {
+      const wrapped = (event) => {
+        event.preventDefault();
+        handler(event);
+      };
+      button.addEventListener('pointerdown', wrapped, { passive: false });
+      button.addEventListener('click', wrapped, { passive: false });
+    }
+
+    function renderThemeButtons() {
+      themesEl.innerHTML = '';
+      THEMES.forEach((theme, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'theme-btn';
+        btn.textContent = theme.name;
+        btn.style.background = theme.button;
+        btn.style.color = '#fff';
+        if (i === state.themeIndex) btn.classList.add('active');
+        btn.addEventListener('click', () => setTheme(i));
+        themesEl.appendChild(btn);
+      });
+    }
+
+    function renderDifficultyButtons() {
+      difficultyListEl.innerHTML = '';
+      DIFFICULTIES.forEach(diff => {
+        const btn = document.createElement('button');
+        btn.className = 'difficulty-btn';
+        btn.dataset.id = diff.id;
+        btn.textContent = diff.name;
+        btn.style.background = 'rgba(255,255,255,0.9)';
+        if (diff.id === state.difficultyId) btn.classList.add('active');
+        btn.addEventListener('click', () => {
+          applyDifficulty(diff.id);
+          resetGame();
+        });
+        difficultyListEl.appendChild(btn);
+      });
+    }
+
+    function renderSkinButtons() {
+      skinsEl.innerHTML = '';
+      SKINS.forEach(skin => {
+        const unlocked = state.unlockedSkins.has(skin.id);
+        const btn = document.createElement('button');
+        btn.className = 'skin-btn';
+        btn.dataset.id = skin.id;
+        btn.style.background = unlocked ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.72)';
+        btn.style.color = '#111827';
+        btn.innerHTML = unlocked
+          ? `${skin.name}<br><span style="font-size:12px;opacity:.7;">Открыт</span>`
+          : `${skin.name}<br><span style="font-size:12px;opacity:.7;">🪙 ${skin.price}</span>`;
+
+        if (!unlocked) btn.classList.add('locked');
+        if (skin.id === state.selectedSkin) btn.classList.add('active');
+
+        btn.addEventListener('click', () => {
+          if (unlocked) {
+            setSkin(skin.id);
+          } else {
+            buySkin(skin.id);
+          }
+        });
+        skinsEl.appendChild(btn);
+      });
+    }
+
+    bindPress(restartBtn, handleRestart);
+
+    soundBtn.addEventListener('click', () => {
+      state.soundEnabled = !state.soundEnabled;
+      soundBtn.textContent = `Звук: ${state.soundEnabled ? 'ВКЛ' : 'ВЫКЛ'}`;
+      soundBtn.classList.toggle('active', state.soundEnabled);
+      if (state.soundEnabled) playSound('coin');
+    });
+
+    animBtn.addEventListener('click', () => {
+      state.animationEnabled = !state.animationEnabled;
+      animBtn.textContent = `Анимация: ${state.animationEnabled ? 'ВКЛ' : 'ВЫКЛ'}`;
+      animBtn.classList.toggle('active', state.animationEnabled);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Space') handleInput(event);
+    });
+
+    canvas.addEventListener('pointerdown', handleInput);
+    bindPress(mobileFlapBtn, handleInput);
+    bindPress(mobileRestartBtn, handleRestart);
+
+    renderThemeButtons();
+    renderDifficultyButtons();
+    renderSkinButtons();
+    applyDifficulty(state.difficultyId);
+    setTheme(Math.max(0, Math.min(THEMES.length - 1, state.themeIndex)));
+    if (!state.unlockedSkins.has(state.selectedSkin)) state.selectedSkin = 'classic';
+    updateHud();
+    saveProgress();
+    resetGame();
+    loop();
+  </script>
+</body>
+</html>

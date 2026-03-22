@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#ff8fc3" />
+  <title>Cake Tower Ultimate Final</title>
+  <style>
+    :root{
+      --bg1:#ffdcec;
+      --bg2:#fff4fa;
+      --bg3:#ffd3e8;
+      --hill1:#ffc6df;
+      --hill2:#ffafd0;
+      --ground:#f39ac2;
+      --panel:rgba(255,255,255,.88);
+      --panelBorder:rgba(255,126,182,.28);
+      --text:#7a2851;
+      --accent:#ff5aa5;
+      --accent2:#ff8fc3;
+      --gold:#ffd86b;
+      --green:#52c98b;
+      --blue:#70b9ff;
+      --shadow:0 12px 30px rgba(122,40,81,.18);
+      --safe-top:max(12px, env(safe-area-inset-top));
+      --safe-bottom:max(14px, env(safe-area-inset-bottom));
+      --safe-left:max(12px, env(safe-area-inset-left));
+      --safe-right:max(12px, env(safe-area-inset-right));
+    }
+
+    *{
+      box-sizing:border-box;
+      -webkit-tap-highlight-color:transparent;
+      user-select:none;
+      touch-action:manipulation;
+    }
+
+    html,body{
+      width:100%;
+      height:100%;
+      margin:0;
+      overflow:hidden;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg3));
+    }
+
+    canvas{
+      display:block;
+      width:100vw;
+      height:100vh;
+    }
+
+    .topbar{
+      position:fixed;
+      top:0;
+      left:0;
+      right:0;
+      z-index:20;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      padding:var(--safe-top) var(--safe-right) 0 var(--safe-left);
+      pointer-events:none;
+      gap:10px;
+    }
+
+    .leftGroup,.rightGroup{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      pointer-events:auto;
+    }
+
+    .pill{
+      min-width:84px;
+      padding:10px 12px;
+      border-radius:18px;
+      background:var(--panel);
+      color:var(--text);
+      border:2px solid var(--panelBorder);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(8px);
+      text-align:center;
+    }
+
+    .pill .label{
+      font-size:11px;
+      text-transform:uppercase;
+      opacity:.72;
+      font-weight:700;
+      letter-spacing:.4px;
+    }
+
+    .pill .value{
+      font-size:22px;
+      line-height:1.15;
+      font-weight:900;
+      margin-top:3px;
+    }
+
+    .iconBtn{
+      width:52px;
+      height:52px;
+      border:none;
+      cursor:pointer;
+      border-radius:18px;
+      background:var(--panel);
+      color:var(--text);
+      border:2px solid var(--panelBorder);
+      box-shadow:var(--shadow);
+      font-size:22px;
+      font-weight:900;
+    }
+
+    .hudPanel{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:19;
+      width:min(760px, calc(100vw - 24px));
+      pointer-events:none;
+    }
+
+    #missionPanel{
+      top:calc(var(--safe-top) + 78px);
+      background:var(--panel);
+      border:2px solid var(--panelBorder);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:10px 12px;
+      color:var(--text);
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .missionText{
+      font-size:14px;
+      font-weight:900;
+    }
+
+    .missionSub{
+      font-size:12px;
+      opacity:.78;
+      margin-top:3px;
+    }
+
+    .progressWrap{
+      min-width:200px;
+      flex:1;
+    }
+
+    .bar{
+      width:100%;
+      height:12px;
+      border-radius:999px;
+      background:#f0d8e5;
+      overflow:hidden;
+      margin-top:7px;
+    }
+
+    .fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#7ce8ab,#35b875);
+      width:0%;
+    }
+
+    #rewardPanel{
+      bottom:calc(var(--safe-bottom) + 66px);
+      background:var(--panel);
+      border:2px solid var(--panelBorder);
+      border-radius:999px;
+      box-shadow:var(--shadow);
+      padding:10px 16px;
+      color:var(--text);
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .miniProgress{
+      width:min(240px, 40vw);
+      height:10px;
+      border-radius:999px;
+      background:#f0d8e5;
+      overflow:hidden;
+    }
+
+    .miniProgress .fill{
+      background:linear-gradient(90deg,var(--gold),#ffb92a);
+    }
+
+    .screen{
+      position:fixed;
+      inset:0;
+      z-index:40;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+
+    .hidden{ display:none !important; }
+
+    .card{
+      width:min(760px,100%);
+      max-height:min(92vh,960px);
+      overflow:auto;
+      border-radius:28px;
+      background:linear-gradient(180deg, rgba(255,255,255,.97), rgba(255,245,251,.93));
+      border:3px solid var(--panelBorder);
+      box-shadow:0 22px 60px rgba(122,40,81,.22);
+      color:var(--text);
+      padding:20px;
+      text-align:center;
+    }
+
+    .title{
+      font-size:36px;
+      font-weight:900;
+      margin:8px 0 10px;
+    }
+
+    .subtitle{
+      font-size:15px;
+      line-height:1.45;
+      opacity:.9;
+      margin:0 auto 14px;
+      max-width:520px;
+    }
+
+    .menuButtons{ display:grid; gap:12px; margin-top:14px; }
+
+    .bigButton,.smallButton{
+      width:100%;
+      border:none;
+      cursor:pointer;
+      border-radius:22px;
+      color:#fff;
+      font-weight:900;
+      box-shadow:0 12px 24px rgba(255,90,165,.25), inset 0 2px 0 rgba(255,255,255,.4);
+      background:linear-gradient(180deg,var(--accent2),var(--accent));
+    }
+
+    .bigButton{ font-size:22px; padding:17px 16px; }
+    .smallButton{ font-size:16px; padding:14px 14px; }
+
+    .gold{ background:linear-gradient(180deg,#ffd86b,#ffb92a); box-shadow:0 12px 24px rgba(255,185,42,.22), inset 0 2px 0 rgba(255,255,255,.4); }
+    .green{ background:linear-gradient(180deg,#7ce8ab,#35b875); box-shadow:0 12px 24px rgba(53,184,117,.22), inset 0 2px 0 rgba(255,255,255,.4); }
+    .blue{ background:linear-gradient(180deg,#9fd0ff,#529ef0); box-shadow:0 12px 24px rgba(82,158,240,.22), inset 0 2px 0 rgba(255,255,255,.4); }
+    .ghost{ background:linear-gradient(180deg,#ffffff,#ffe8f3); color:var(--text); border:2px solid var(--panelBorder); box-shadow:var(--shadow); }
+
+    .grid2,.grid3,.grid4{
+      display:grid;
+      gap:10px;
+      margin-top:14px;
+    }
+    .grid2{ grid-template-columns:1fr 1fr; }
+    .grid3{ grid-template-columns:repeat(3,1fr); }
+    .grid4{ grid-template-columns:repeat(4,1fr); }
+
+    .miniBox{
+      border-radius:20px;
+      background:rgba(255,235,245,.92);
+      border:2px solid rgba(255,126,182,.16);
+      padding:14px 10px;
+      text-align:center;
+    }
+
+    .miniBox .k{ font-size:12px; opacity:.72; text-transform:uppercase; font-weight:700; }
+    .miniBox .v{ margin-top:5px; font-size:24px; font-weight:900; }
+
+    .bottomHint{
+      position:fixed;
+      left:50%;
+      bottom:var(--safe-bottom);
+      transform:translateX(-50%);
+      z-index:18;
+      padding:12px 18px;
+      border-radius:999px;
+      background:var(--panel);
+      border:2px solid var(--panelBorder);
+      box-shadow:var(--shadow);
+      color:var(--text);
+      font-size:14px;
+      font-weight:900;
+      pointer-events:none;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      background:#fff2a8;
+      color:#7a4f00;
+      font-weight:800;
+      font-size:12px;
+      margin-left:6px;
+    }
+
+    .shopGrid,.themeGrid,.upgradeGrid,.achGrid,.dailyGrid,.leaderboardGrid,.settingsGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .shopItem,.themeItem,.upgradeItem,.achItem,.dailyItem,.leaderItem,.settingsItem{
+      text-align:left;
+      border-radius:20px;
+      background:rgba(255,237,246,.96);
+      border:2px solid rgba(255,126,182,.18);
+      padding:12px;
+      box-shadow:var(--shadow);
+    }
+
+    .skinPreview{
+      height:72px;
+      border-radius:16px;
+      margin-bottom:10px;
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(180deg,#fff,#ffeef7);
+    }
+
+    .cakeSample{ position:absolute; left:50%; bottom:10px; transform:translateX(-50%); width:78px; height:44px; }
+    .sampleCakeBody{ position:absolute; left:0; right:0; bottom:0; height:28px; border-radius:12px; }
+    .sampleCream{ position:absolute; left:0; right:0; top:0; height:16px; border-radius:12px; }
+    .sampleCherry{ position:absolute; width:10px; height:10px; border-radius:50%; top:-5px; left:50%; transform:translateX(-50%); }
+
+    .itemName{ font-size:15px; font-weight:900; margin-bottom:5px; color:var(--text); }
+    .itemDesc{ font-size:12px; line-height:1.35; opacity:.8; min-height:32px; }
+    .row{ display:flex; gap:8px; margin-top:10px; }
+    .row button{ flex:1; }
+    .tiny{ font-size:12px; opacity:.78; margin-top:8px; }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      top:92px;
+      transform:translateX(-50%);
+      z-index:60;
+      display:none;
+      min-width:220px;
+      max-width:min(90vw,420px);
+      padding:14px 18px;
+      border-radius:22px;
+      background:rgba(255,255,255,.95);
+      border:3px solid rgba(255,216,107,.55);
+      box-shadow:0 16px 40px rgba(122,40,81,.22);
+      color:var(--text);
+      text-align:center;
+    }
+    .toast .big{ font-size:24px; font-weight:900; }
+    .toast .small{ margin-top:4px; font-size:14px; opacity:.84; }
+
+    .sectionTitle{ text-align:left; font-size:18px; font-weight:900; margin:8px 0 6px; }
+
+    .tabs{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-top:12px; }
+    .tabBtn{
+      padding:12px 8px;
+      border:none;
+      cursor:pointer;
+      border-radius:16px;
+      background:rgba(255,235,245,.95);
+      border:2px solid rgba(255,126,182,.2);
+      color:var(--text);
+      font-weight:900;
+      box-shadow:var(--shadow);
+      font-size:13px;
+    }
+    .tabBtn.active{ background:linear-gradient(180deg,var(--accent2),var(--accent)); color:#fff; }
+
+    .settingsRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-top:10px;
+    }
+
+    .selectLike{
+      border:none;
+      border-radius:14px;
+      background:#fff;
+      padding:10px 12px;
+      font-weight:800;
+      color:var(--text);
+      min-width:120px;
+    }
+
+    @media (max-width:700px){
+      .shopGrid,.themeGrid,.upgradeGrid,.achGrid,.dailyGrid,.leaderboardGrid,.settingsGrid,.grid2,.grid3,.grid4{grid-template-columns:1fr;}
+      .tabs{grid-template-columns:repeat(2,1fr);}
+      .title{font-size:30px;}
+      .pill{min-width:74px;}
+      .pill .value{font-size:19px;}
+      #missionPanel{top:calc(var(--safe-top) + 136px);}
+      #rewardPanel{bottom:calc(var(--safe-bottom) + 58px); width:min(92vw, 520px);}
+      .miniProgress{width:34vw;}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="leftGroup">
+      <div class="pill"><div class="label" data-i18n="score">Очки</div><div class="value" id="scoreEl">0</div></div>
+      <div class="pill"><div class="label" data-i18n="combo">Комбо</div><div class="value" id="comboEl">x1</div></div>
+      <div class="pill"><div class="label" data-i18n="coins">Монеты</div><div class="value" id="coinsEl">0</div></div>
+      <div class="pill"><div class="label" data-i18n="speed">Скорость</div><div class="value" id="speedEl">3.2</div></div>
+    </div>
+    <div class="rightGroup">
+      <button class="iconBtn" id="pauseBtn" title="Пауза">⏸</button>
+      <button class="iconBtn" id="hubBtn" title="Центр">⭐</button>
+    </div>
+  </div>
+
+  <div class="hudPanel" id="missionPanel">
+    <div>
+      <div class="missionText" id="missionTitle">Миссия: Сделай 3 perfect</div>
+      <div class="missionSub" id="missionSub">Награда: 30 монет</div>
+    </div>
+    <div class="progressWrap">
+      <div class="bar"><div class="fill" id="missionFill"></div></div>
+      <div class="tiny" id="missionProgress">0 / 3</div>
+    </div>
+  </div>
+
+  <canvas id="game"></canvas>
+
+  <div class="hudPanel" id="rewardPanel">
+    <div style="font-weight:900" id="rewardText">До награды: 0 / 5</div>
+    <div class="miniProgress"><div class="fill" id="rewardFill"></div></div>
+    <div style="font-weight:900" id="speedText">До ускорения: 0 / 5</div>
+  </div>
+
+  <div class="bottomHint" id="tapHint">Нажми на экран, чтобы поставить слой торта</div>
+
+  <div class="toast" id="toast">
+    <div class="big" id="toastBig">PERFECT!</div>
+    <div class="small" id="toastSmall">Идеальное попадание</div>
+  </div>
+
+  <div class="screen" id="menuScreen">
+    <div class="card">
+      <div style="font-size:46px">🧁🎂🍓</div>
+      <div class="title">Cake Tower</div>
+      <div class="subtitle" id="menuSubtitle">Готовая версия для релиза: миссии, ежедневные награды, таблица рекордов, настройки, темы, скины и плавный прогресс.</div>
+      <div class="grid4">
+        <div class="miniBox"><div class="k">Рекорд</div><div class="v" id="menuBestEl">0</div></div>
+        <div class="miniBox"><div class="k">Монеты</div><div class="v" id="menuCoinsEl">0</div></div>
+        <div class="miniBox"><div class="k">Уровень</div><div class="v" id="menuLevelEl">1</div></div>
+        <div class="miniBox"><div class="k">Серия</div><div class="v" id="menuStreakEl">1</div></div>
+      </div>
+      <div class="menuButtons">
+        <button class="bigButton" id="startBtn">Играть</button>
+        <button class="smallButton gold" id="dailyBtn">Ежедневная награда</button>
+        <button class="smallButton green" id="hubMenuBtn">Центр игрока</button>
+        <button class="smallButton blue" id="leaderboardBtn">Таблица рекордов</button>
+      </div>
+      <div class="tiny" id="menuFootnote">Каждые 5 тортов дают пачку монет и повышают скорость.</div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="pauseScreen">
+    <div class="card">
+      <div style="font-size:42px">⏸</div>
+      <div class="title" style="font-size:34px">Пауза</div>
+      <div class="subtitle">Игра остановлена.</div>
+      <div class="menuButtons">
+        <button class="bigButton" id="resumeBtn">Продолжить</button>
+        <button class="smallButton green" id="hubPauseBtn">Центр игрока</button>
+        <button class="smallButton gold" id="dailyPauseBtn">Ежедневная награда</button>
+        <button class="smallButton blue" id="leaderboardPauseBtn">Таблица рекордов</button>
+        <button class="smallButton ghost" id="pauseMenuBtn">В меню</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="gameOverScreen">
+    <div class="card">
+      <div style="font-size:48px">🍰</div>
+      <div class="title" style="font-size:34px">Башня упала</div>
+      <div class="grid2">
+        <div class="miniBox"><div class="k">Очки</div><div class="v" id="finalScoreEl">0</div></div>
+        <div class="miniBox"><div class="k">Награда</div><div class="v" id="rewardCoinsEl">0</div></div>
+      </div>
+      <div class="grid2">
+        <div class="miniBox"><div class="k">Рекорд</div><div class="v" id="finalBestEl">0</div></div>
+        <div class="miniBox"><div class="k">Монеты</div><div class="v" id="finalCoinsEl">0</div></div>
+      </div>
+      <div class="grid2">
+        <div class="miniBox"><div class="k">Миссия</div><div class="v" id="finalMissionEl">0%</div></div>
+        <div class="miniBox"><div class="k">Комбо max</div><div class="v" id="finalComboEl">x1</div></div>
+      </div>
+      <div class="menuButtons">
+        <button class="bigButton" id="restartBtn">Играть снова</button>
+        <button class="smallButton green" id="hubOverBtn">Центр игрока</button>
+        <button class="smallButton blue" id="leaderboardOverBtn">Таблица рекордов</button>
+        <button class="smallButton ghost" id="overMenuBtn">В меню</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="dailyScreen">
+    <div class="card">
+      <div style="font-size:42px">🎁</div>
+      <div class="title" style="font-size:32px">Ежедневная награда</div>
+      <div class="subtitle">Забирай награду раз в день. Серия входов увеличивает бонус.</div>
+      <div class="grid3" id="dailyDays"></div>
+      <div class="grid2">
+        <div class="miniBox"><div class="k">Серия дней</div><div class="v" id="streakEl">1</div></div>
+        <div class="miniBox"><div class="k">Следующая</div><div class="v" id="nextRewardEl">20</div></div>
+      </div>
+      <div class="menuButtons">
+        <button class="bigButton gold" id="claimDailyBtn">Забрать</button>
+        <button class="smallButton ghost" id="closeDailyBtn">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="leaderboardScreen">
+    <div class="card">
+      <div style="font-size:42px">🏆</div>
+      <div class="title" style="font-size:32px">Таблица рекордов</div>
+      <div class="subtitle">Локальный рейтинг на устройстве. Для реального онлайна останется заменить хранилище на Firebase или Supabase.</div>
+      <div class="leaderboardGrid" id="leaderboardGrid"></div>
+      <div class="menuButtons">
+        <button class="smallButton blue" id="submitScoreBtn">Сохранить мой рекорд</button>
+        <button class="smallButton ghost" id="closeLeaderboardBtn">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="hubScreen">
+    <div class="card">
+      <div style="font-size:42px">⭐</div>
+      <div class="title" style="font-size:32px">Центр игрока</div>
+      <div class="subtitle">Здесь прогресс, улучшения, достижения, скины, темы и настройки.</div>
+      <div class="tabs">
+        <button class="tabBtn active" data-tab="upgrades">Прокачка</button>
+        <button class="tabBtn" data-tab="achievements">Достижения</button>
+        <button class="tabBtn" data-tab="skins">Скины</button>
+        <button class="tabBtn" data-tab="themes">Темы</button>
+        <button class="tabBtn" data-tab="stats">Статистика</button>
+        <button class="tabBtn" data-tab="settings">Настройки</button>
+      </div>
+
+      <div id="tab-upgrades">
+        <div class="sectionTitle">Твои монеты: <span id="hubCoinsEl">0</span> 🪙</div>
+        <div class="upgradeGrid" id="upgradeGrid"></div>
+      </div>
+
+      <div id="tab-achievements" class="hidden">
+        <div class="sectionTitle">Достижения</div>
+        <div class="achGrid" id="achGrid"></div>
+      </div>
+
+      <div id="tab-skins" class="hidden">
+        <div class="sectionTitle">Скины тортиков</div>
+        <div class="shopGrid" id="shopGrid"></div>
+      </div>
+
+      <div id="tab-themes" class="hidden">
+        <div class="sectionTitle">Темы игры</div>
+        <div class="themeGrid" id="themeGrid"></div>
+      </div>
+
+      <div id="tab-stats" class="hidden">
+        <div class="sectionTitle">Статистика игрока</div>
+        <div class="grid3" id="statsGrid"></div>
+      </div>
+
+      <div id="tab-settings" class="hidden">
+        <div class="sectionTitle">Настройки</div>
+        <div class="settingsGrid">
+          <div class="settingsItem">
+            <div class="itemName">Аудио</div>
+            <div class="itemDesc">Звук, музыка и вибрация.</div>
+            <div class="settingsRow"><span>Звук</span><button class="smallButton" id="soundBtn">ВКЛ</button></div>
+            <div class="settingsRow"><span>Музыка</span><button class="smallButton blue" id="musicBtn">ВЫКЛ</button></div>
+            <div class="settingsRow"><span>Вибрация</span><button class="smallButton green" id="vibrationBtn">ВКЛ</button></div>
+          </div>
+          <div class="settingsItem">
+            <div class="itemName">Язык</div>
+            <div class="itemDesc">Переключение RU / EN через встроенную локализацию.</div>
+            <div class="settingsRow"><span>Текущий</span><select class="selectLike" id="languageSelect"><option value="ru">Русский</option><option value="en">English</option></select></div>
+          </div>
+          <div class="settingsItem">
+            <div class="itemName">Игрок</div>
+            <div class="itemDesc">Имя для локального рейтинга.</div>
+            <div class="settingsRow"><input id="playerNameInput" class="selectLike" maxlength="16" placeholder="Player" /><button class="smallButton gold" id="saveNameBtn">Сохранить</button></div>
+          </div>
+          <div class="settingsItem">
+            <div class="itemName">Данные</div>
+            <div class="itemDesc">Сброс прогресса только по кнопке.</div>
+            <div class="row"><button class="smallButton ghost" id="exportBtn">Экспорт</button><button class="smallButton ghost" id="importBtn">Импорт</button></div>
+            <div class="row"><button class="smallButton" id="resetProgressBtn">Сбросить прогресс</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menuButtons">
+        <button class="smallButton ghost" id="closeHubBtn">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  const STORAGE = {
+    best: "cake_final_best",
+    coins: "cake_final_coins",
+    skins: "cake_final_skins",
+    selectedSkin: "cake_final_selected_skin",
+    selectedTheme: "cake_final_selected_theme",
+    sound: "cake_final_sound",
+    music: "cake_final_music",
+    vibration: "cake_final_vibration",
+    upgrades: "cake_final_upgrades",
+    achievements: "cake_final_achievements",
+    stats: "cake_final_stats",
+    daily: "cake_final_daily",
+    leaderboard: "cake_final_leaderboard",
+    playerName: "cake_final_player_name",
+    language: "cake_final_language",
+    onboarding: "cake_final_onboarding"
+  };
+
+  const I18N = {
+    ru: {
+      score: "Очки", combo: "Комбо", coins: "Монеты", speed: "Скорость",
+      tap: "Нажми на экран, чтобы поставить слой торта",
+      play: "Играть"
+    },
+    en: {
+      score: "Score", combo: "Combo", coins: "Coins", speed: "Speed",
+      tap: "Tap to place the cake layer",
+      play: "Play"
+    }
+  };
+
+  let W = innerWidth;
+  let H = innerHeight;
+  let DPR = Math.max(1, Math.min(2, devicePixelRatio || 1));
+  function resizeCanvas(){
+    W = innerWidth; H = innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  resizeCanvas();
+  addEventListener("resize", resizeCanvas);
+
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    scoreEl: $("scoreEl"), comboEl: $("comboEl"), coinsEl: $("coinsEl"), speedEl: $("speedEl"), tapHint: $("tapHint"),
+    missionTitle: $("missionTitle"), missionSub: $("missionSub"), missionFill: $("missionFill"), missionProgress: $("missionProgress"),
+    rewardText: $("rewardText"), rewardFill: $("rewardFill"), speedText: $("speedText"),
+    menuScreen: $("menuScreen"), pauseScreen: $("pauseScreen"), gameOverScreen: $("gameOverScreen"), dailyScreen: $("dailyScreen"), hubScreen: $("hubScreen"), leaderboardScreen: $("leaderboardScreen"),
+    menuBestEl: $("menuBestEl"), menuCoinsEl: $("menuCoinsEl"), menuLevelEl: $("menuLevelEl"), menuStreakEl: $("menuStreakEl"),
+    finalScoreEl: $("finalScoreEl"), rewardCoinsEl: $("rewardCoinsEl"), finalBestEl: $("finalBestEl"), finalCoinsEl: $("finalCoinsEl"), finalMissionEl: $("finalMissionEl"), finalComboEl: $("finalComboEl"),
+    toast: $("toast"), toastBig: $("toastBig"), toastSmall: $("toastSmall"),
+    dailyDays: $("dailyDays"), streakEl: $("streakEl"), nextRewardEl: $("nextRewardEl"), claimDailyBtn: $("claimDailyBtn"),
+    hubCoinsEl: $("hubCoinsEl"), upgradeGrid: $("upgradeGrid"), achGrid: $("achGrid"), shopGrid: $("shopGrid"), themeGrid: $("themeGrid"), statsGrid: $("statsGrid"), leaderboardGrid: $("leaderboardGrid"),
+    soundBtn: $("soundBtn"), musicBtn: $("musicBtn"), vibrationBtn: $("vibrationBtn"), languageSelect: $("languageSelect"), playerNameInput: $("playerNameInput")
+  };
+
+  let bestScore = parseInt(localStorage.getItem(STORAGE.best) || "0", 10);
+  let totalCoins = parseInt(localStorage.getItem(STORAGE.coins) || "0", 10);
+  let unlockedSkins = JSON.parse(localStorage.getItem(STORAGE.skins) || "[0]");
+  let selectedSkin = parseInt(localStorage.getItem(STORAGE.selectedSkin) || "0", 10);
+  let selectedTheme = parseInt(localStorage.getItem(STORAGE.selectedTheme) || "0", 10);
+  let audioEnabled = localStorage.getItem(STORAGE.sound) !== "0";
+  let musicEnabled = localStorage.getItem(STORAGE.music) === "1";
+  let vibrationEnabled = localStorage.getItem(STORAGE.vibration) !== "0";
+  let language = localStorage.getItem(STORAGE.language) || "ru";
+  let playerName = localStorage.getItem(STORAGE.playerName) || "Player";
+  let onboardingDone = localStorage.getItem(STORAGE.onboarding) === "1";
+
+  let upgrades = JSON.parse(localStorage.getItem(STORAGE.upgrades) || '{"coins":0,"perfect":0,"width":0}');
+  let achievementsClaimed = JSON.parse(localStorage.getItem(STORAGE.achievements) || "{}");
+  let stats = JSON.parse(localStorage.getItem(STORAGE.stats) || '{"games":0,"cakes":0,"perfects":0,"maxCombo":1,"bestScore":0,"bestPerfectStreak":0,"totalMissions":0}');
+  let daily = JSON.parse(localStorage.getItem(STORAGE.daily) || '{"lastClaim":"","streak":1}');
+  let leaderboard = JSON.parse(localStorage.getItem(STORAGE.leaderboard) || "[]");
+
+  function clampSave(){
+    totalCoins = Math.max(0, Math.min(totalCoins, 999999));
+    bestScore = Math.max(0, Math.min(bestScore, 999999));
+    upgrades.coins = Math.max(0, Math.min(upgrades.coins || 0, 8));
+    upgrades.perfect = Math.max(0, Math.min(upgrades.perfect || 0, 8));
+    upgrades.width = Math.max(0, Math.min(upgrades.width || 0, 6));
+    if(!Array.isArray(unlockedSkins) || unlockedSkins.length === 0) unlockedSkins = [0];
+    if(!unlockedSkins.includes(0)) unlockedSkins.unshift(0);
+    selectedSkin = unlockedSkins.includes(selectedSkin) ? selectedSkin : 0;
+    selectedTheme = Math.max(0, Math.min(selectedTheme, 7));
+  }
+  clampSave();
+
+  const THEMES = [
+    { name:"Сахарная", desc:"Розовое сладкое небо", bg1:"#ffdcec", bg2:"#fff4fa", bg3:"#ffd3e8", hill1:"#ffc6df", hill2:"#ffafd0", ground:"#f39ac2", panel:"rgba(255,255,255,.84)", border:"rgba(255,126,182,.28)", text:"#7a2851", accent:"#ff5aa5", accent2:"#ff8fc3" },
+    { name:"Ночное кафе", desc:"Тёплая ночь и огоньки", bg1:"#30234f", bg2:"#4a3f7f", bg3:"#7b5ea7", hill1:"#5c4d8f", hill2:"#4b3c79", ground:"#3a2b61", panel:"rgba(255,255,255,.14)", border:"rgba(255,255,255,.16)", text:"#fff4ff", accent:"#ff8dc7", accent2:"#c6a0ff" },
+    { name:"Мятный сад", desc:"Свежо и легко", bg1:"#d8fff2", bg2:"#effff9", bg3:"#c3f5df", hill1:"#b9efda", hill2:"#8de0c4", ground:"#6cc8a7", panel:"rgba(255,255,255,.84)", border:"rgba(122,211,171,.28)", text:"#1f5f4b", accent:"#37b992", accent2:"#7de0bf" },
+    { name:"Закат", desc:"Персиковый вечер", bg1:"#ffe0c7", bg2:"#fff1e5", bg3:"#ffc3bf", hill1:"#ffbea3", hill2:"#ff9e8c", ground:"#ee7d77", panel:"rgba(255,255,255,.82)", border:"rgba(255,138,100,.26)", text:"#7b3b2c", accent:"#ff7b5c", accent2:"#ffb078" },
+    { name:"Черника", desc:"Ягодные сумерки", bg1:"#d9ddff", bg2:"#f1f2ff", bg3:"#c8c7ff", hill1:"#b9b4ff", hill2:"#938dff", ground:"#7068e6", panel:"rgba(255,255,255,.82)", border:"rgba(117,116,241,.24)", text:"#3b347d", accent:"#6a62ff", accent2:"#9d95ff" },
+    { name:"Лимонад", desc:"Солнечно и ярко", bg1:"#fff7c7", bg2:"#fffee8", bg3:"#ffe39a", hill1:"#ffe089", hill2:"#ffd05d", ground:"#f4b93f", panel:"rgba(255,255,255,.84)", border:"rgba(255,198,76,.28)", text:"#7b5716", accent:"#ffb400", accent2:"#ffd86b" },
+    { name:"Лаванда", desc:"Спокойный фиолетовый", bg1:"#efe1ff", bg2:"#f8f1ff", bg3:"#dcc8ff", hill1:"#d6b7ff", hill2:"#bf93ff", ground:"#9d72e8", panel:"rgba(255,255,255,.84)", border:"rgba(168,117,255,.28)", text:"#5f2d96", accent:"#9d55ff", accent2:"#c59cff" },
+    { name:"Ледяная", desc:"Холодный блеск", bg1:"#dff7ff", bg2:"#f4fdff", bg3:"#cdefff", hill1:"#bde7fb", hill2:"#8ad1f2", ground:"#58b6df", panel:"rgba(255,255,255,.85)", border:"rgba(98,194,233,.28)", text:"#1d5a74", accent:"#38a9da", accent2:"#82dbff" }
+  ];
+
+  const SKINS = [
+    { id:0, name:"Классика", price:0, desc:"Нежный розовый торт", cream:"#ffd0e4", cake:"#ff98bd", sprinkle:"#fff176", cherry:"#ff4f7a" },
+    { id:1, name:"Шоколад", price:20, desc:"Шоколадный вкус", cream:"#e6c7a8", cake:"#7f4a2f", sprinkle:"#ffd36a", cherry:"#ff5d6f" },
+    { id:2, name:"Клубника", price:35, desc:"Яркий ягодный стиль", cream:"#ffd4df", cake:"#ff668f", sprinkle:"#fff176", cherry:"#d91e49" },
+    { id:3, name:"Мята", price:45, desc:"Свежий зелёный торт", cream:"#dff9ea", cake:"#7fd8a8", sprinkle:"#fff7a8", cherry:"#ff5b6c" },
+    { id:4, name:"Черника", price:55, desc:"Сине-фиолетовый десерт", cream:"#e3ddff", cake:"#8d79ff", sprinkle:"#fff176", cherry:"#ff607f" },
+    { id:5, name:"Лимон", price:65, desc:"Сочный жёлтый торт", cream:"#fff7cc", cake:"#ffd45c", sprinkle:"#ffffff", cherry:"#ff6472" },
+    { id:6, name:"Карамель", price:75, desc:"Тёплые сладкие цвета", cream:"#ffe3c1", cake:"#d88d4d", sprinkle:"#fff0a0", cherry:"#ff5c74" },
+    { id:7, name:"Космос", price:90, desc:"Тёмный звёздный стиль", cream:"#cdc7ff", cake:"#31295f", sprinkle:"#7de6ff", cherry:"#ff6bc3" },
+    { id:8, name:"Радуга", price:110, desc:"Весёлый разноцветный торт", cream:"#fff0ff", cake:"#ff8f8f", sprinkle:"#7cf2ff", cherry:"#6bffae" },
+    { id:9, name:"Золото", price:140, desc:"Праздничный блестящий торт", cream:"#fff4cd", cake:"#f2bf44", sprinkle:"#ffffff", cherry:"#ff5a73" }
+  ];
+
+  const UPGRADE_LIST = [
+    { id:"coins", name:"Монетный бонус", desc:"Больше монет за каждый удачный торт", basePrice:40, max:8 },
+    { id:"perfect", name:"Бонус perfect", desc:"Больше очков и монет за идеальные попадания", basePrice:55, max:8 },
+    { id:"width", name:"Ширина башни", desc:"Стартовая ширина башни становится больше", basePrice:70, max:6 }
+  ];
+
+  const ACHIEVEMENTS = [
+    { id:"cakes10", name:"Первые 10", desc:"Поставить 10 тортов", target:10, type:"cakes", reward:20 },
+    { id:"cakes50", name:"Уже мастер", desc:"Поставить 50 тортов", target:50, type:"cakes", reward:60 },
+    { id:"cakes200", name:"Кондитер", desc:"Поставить 200 тортов", target:200, type:"cakes", reward:180 },
+    { id:"perfect5", name:"Точный глаз", desc:"Сделать 5 perfect", target:5, type:"perfects", reward:25 },
+    { id:"perfect25", name:"Идеал", desc:"Сделать 25 perfect", target:25, type:"perfects", reward:100 },
+    { id:"combo5", name:"Серия", desc:"Сделать комбо x5", target:5, type:"combo", reward:35 },
+    { id:"combo10", name:"Без ошибок", desc:"Сделать комбо x10", target:10, type:"combo", reward:120 },
+    { id:"score30", name:"Высокая башня", desc:"Набрать 30 очков", target:30, type:"score", reward:50 },
+    { id:"score100", name:"Небоскрёб", desc:"Набрать 100 очков", target:100, type:"score", reward:200 },
+    { id:"games10", name:"Постоянный игрок", desc:"Сыграть 10 игр", target:10, type:"games", reward:40 },
+    { id:"missions5", name:"Выполни задачу", desc:"Закончить 5 миссий", target:5, type:"missions", reward:80 }
+  ];
+
+  const DAILY_REWARDS = [20, 30, 40, 60, 80, 120, 180];
+  const RUN_MISSIONS = [
+    { id:"perfect3", text:"Сделай 3 perfect", target:3, type:"perfects", reward:30 },
+    { id:"cakes15", text:"Поставь 15 тортов", target:15, type:"cakes", reward:35 },
+    { id:"combo6", text:"Сделай комбо x6", target:6, type:"combo", reward:45 },
+    { id:"score25", text:"Набери 25 очков", target:25, type:"score", reward:40 }
+  ];
+
+  function saveAll(){
+    clampSave();
+    localStorage.setItem(STORAGE.best, String(bestScore));
+    localStorage.setItem(STORAGE.coins, String(totalCoins));
+    localStorage.setItem(STORAGE.skins, JSON.stringify(unlockedSkins));
+    localStorage.setItem(STORAGE.selectedSkin, String(selectedSkin));
+    localStorage.setItem(STORAGE.selectedTheme, String(selectedTheme));
+    localStorage.setItem(STORAGE.sound, audioEnabled ? "1" : "0");
+    localStorage.setItem(STORAGE.music, musicEnabled ? "1" : "0");
+    localStorage.setItem(STORAGE.vibration, vibrationEnabled ? "1" : "0");
+    localStorage.setItem(STORAGE.upgrades, JSON.stringify(upgrades));
+    localStorage.setItem(STORAGE.achievements, JSON.stringify(achievementsClaimed));
+    localStorage.setItem(STORAGE.stats, JSON.stringify(stats));
+    localStorage.setItem(STORAGE.daily, JSON.stringify(daily));
+    localStorage.setItem(STORAGE.leaderboard, JSON.stringify(leaderboard));
+    localStorage.setItem(STORAGE.playerName, playerName);
+    localStorage.setItem(STORAGE.language, language);
+    localStorage.setItem(STORAGE.onboarding, onboardingDone ? "1" : "0");
+  }
+
+  function applyTheme(themeIndex){
+    const t = THEMES[themeIndex];
+    document.documentElement.style.setProperty("--bg1", t.bg1);
+    document.documentElement.style.setProperty("--bg2", t.bg2);
+    document.documentElement.style.setProperty("--bg3", t.bg3);
+    document.documentElement.style.setProperty("--hill1", t.hill1);
+    document.documentElement.style.setProperty("--hill2", t.hill2);
+    document.documentElement.style.setProperty("--ground", t.ground);
+    document.documentElement.style.setProperty("--panel", t.panel);
+    document.documentElement.style.setProperty("--panelBorder", t.border);
+    document.documentElement.style.setProperty("--text", t.text);
+    document.documentElement.style.setProperty("--accent", t.accent);
+    document.documentElement.style.setProperty("--accent2", t.accent2);
+  }
+  applyTheme(selectedTheme);
+
+  const game = {
+    running:false, paused:false, gameOver:false,
+    score:0, combo:1, sessionCoins:0, pendingCoins:0,
+    worldOffsetY:0, cameraTarget:0,
+    tower:[], activeLayer:null, particles:[], clouds:[], stars:[],
+    speedBase:3.2, placedThisRun:0, perfectsThisRun:0, perfectStreak:0, maxComboThisRun:1,
+    mission:null, missionProgress:0, missionDone:false,
+    cloudsTick:0, inputLock:false
+  };
+
+  const FLOOR_MARGIN = 110;
+  const LAYER_HEIGHT = 34;
+  const BASE_WIDTH = 170;
+  const PERFECT_THRESHOLD = 8;
+  const MIN_OVERLAP = 10;
+
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function floorY(){ return H - FLOOR_MARGIN; }
+  function currentLevel(){ return 1 + upgrades.coins + upgrades.perfect + upgrades.width; }
+  function getSelectedSkin(){ return SKINS.find(s => s.id === selectedSkin) || SKINS[0]; }
+  function getCurrentMoveSpeed(){ return game.speedBase + Math.floor(game.placedThisRun / 5) * 0.3; }
+
+  function createDecor(){
+    game.clouds = []; game.stars = [];
+    for(let i=0;i<7;i++) game.clouds.push({ x: rand(-100, W + 100), y: rand(60, H * 0.55), s: rand(45, 95), speed: rand(0.06, 0.18) });
+    for(let i=0;i<22;i++) game.stars.push({ x: rand(0,W), y: rand(0,H * 0.45), r: rand(1,2.5), a: rand(.2,.8), tw: rand(.5, 1.7) });
+  }
+  createDecor();
+  addEventListener("resize", createDecor);
+
+  function pickMission(){
+    const m = RUN_MISSIONS[Math.floor(Math.random() * RUN_MISSIONS.length)];
+    game.mission = { ...m };
+    game.missionProgress = 0;
+    game.missionDone = false;
+  }
+
+  function updateMission(){
+    if(!game.mission) return;
+    if(game.mission.type === "perfects") game.missionProgress = game.perfectsThisRun;
+    if(game.mission.type === "cakes") game.missionProgress = game.placedThisRun;
+    if(game.mission.type === "combo") game.missionProgress = game.combo;
+    if(game.mission.type === "score") game.missionProgress = game.score;
+    const pct = Math.min(100, (game.missionProgress / game.mission.target) * 100);
+    els.missionTitle.textContent = "Миссия: " + game.mission.text;
+    els.missionSub.textContent = "Награда: " + game.mission.reward + " монет";
+    els.missionFill.style.width = pct + "%";
+    els.missionProgress.textContent = Math.min(game.missionProgress, game.mission.target) + " / " + game.mission.target;
+    if(!game.missionDone && game.missionProgress >= game.mission.target){
+      game.missionDone = true;
+      stats.totalMissions = (stats.totalMissions || 0) + 1;
+      addCoins(game.mission.reward);
+      showToast("Миссия выполнена!", "+" + game.mission.reward + " монет");
+      sfxBuy();
+      renderStats();
+      checkAchievements();
+    }
+  }
+
+  function updateRewardHud(){
+    const progress = game.placedThisRun % 5;
+    els.rewardText.textContent = "До награды: " + progress + " / 5";
+    els.speedText.textContent = "До ускорения: " + progress + " / 5";
+    els.rewardFill.style.width = (progress / 5) * 100 + "%";
+  }
+
+  function updateUI(){
+    els.scoreEl.textContent = game.score;
+    els.comboEl.textContent = "x" + game.combo;
+    els.coinsEl.textContent = totalCoins;
+    els.speedEl.textContent = getCurrentMoveSpeed().toFixed(1);
+    els.menuBestEl.textContent = bestScore;
+    els.menuCoinsEl.textContent = totalCoins;
+    els.menuLevelEl.textContent = currentLevel();
+    els.menuStreakEl.textContent = daily.streak || 1;
+    els.hubCoinsEl.textContent = totalCoins;
+    els.tapHint.textContent = I18N[language]?.tap || I18N.ru.tap;
+    els.soundBtn.textContent = audioEnabled ? "ВКЛ" : "ВЫКЛ";
+    els.musicBtn.textContent = musicEnabled ? "ВКЛ" : "ВЫКЛ";
+    els.vibrationBtn.textContent = vibrationEnabled ? "ВКЛ" : "ВЫКЛ";
+    els.languageSelect.value = language;
+    els.playerNameInput.value = playerName;
+    updateRewardHud();
+    updateMission();
+    renderStats();
+  }
+
+  function addCoins(amount){ totalCoins += amount; saveAll(); updateUI(); }
+  function vibrate(pattern){ if(vibrationEnabled && navigator.vibrate) navigator.vibrate(pattern); }
+
+  let audioCtx = null, musicNodes = null;
+  function ensureAudio(){
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === "suspended") audioCtx.resume();
+  }
+  function playTone(freq=440, duration=.08, type="triangle", volume=.03){
+    if(!audioEnabled) return;
+    ensureAudio();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, now);
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + duration);
+  }
+  function startMusic(){
+    if(!musicEnabled) return;
+    ensureAudio();
+    if(musicNodes) return;
+    const now = audioCtx.currentTime;
+    const g = audioCtx.createGain(); g.gain.value = 0.015; g.connect(audioCtx.destination);
+    const o1 = audioCtx.createOscillator(); const o2 = audioCtx.createOscillator();
+    o1.type = "sine"; o2.type = "triangle";
+    o1.frequency.setValueAtTime(220, now); o2.frequency.setValueAtTime(330, now);
+    o1.connect(g); o2.connect(g); o1.start(); o2.start();
+    musicNodes = {g,o1,o2};
+  }
+  function stopMusic(){
+    if(!musicNodes) return;
+    musicNodes.o1.stop(); musicNodes.o2.stop(); musicNodes = null;
+  }
+  function syncMusic(){ if(musicEnabled) startMusic(); else stopMusic(); }
+
+  function sfxStart(){ playTone(520,.08,"triangle",.03); setTimeout(()=>playTone(720,.1,"triangle",.025),70); }
+  function sfxDrop(){ playTone(400,.06,"triangle",.028); }
+  function sfxPerfect(){ playTone(660,.08,"triangle",.032); setTimeout(()=>playTone(880,.12,"triangle",.028),60); }
+  function sfxCoin(){ playTone(820,.08,"square",.025); setTimeout(()=>playTone(1040,.08,"square",.018),40); }
+  function sfxGameOver(){ playTone(260,.15,"sawtooth",.03); setTimeout(()=>playTone(170,.22,"sawtooth",.022),110); }
+  function sfxBuy(){ playTone(620,.06,"triangle",.026); setTimeout(()=>playTone(780,.08,"triangle",.022),45); }
+  function sfxSelect(){ playTone(540,.06,"triangle",.022); }
+  function sfxRecord(){ playTone(980,.08,"triangle",.03); setTimeout(()=>playTone(1180,.12,"triangle",.03),70); }
+  function sfxCombo(){ playTone(730,.07,"square",.022); setTimeout(()=>playTone(920,.09,"square",.02),60); }
+
+  function showToast(big, small){
+    els.toastBig.textContent = big;
+    els.toastSmall.textContent = small;
+    els.toast.style.display = "block";
+    clearTimeout(showToast.t);
+    showToast.t = setTimeout(() => els.toast.style.display = "none", 1300);
+  }
+
+  function spawnParticles(x, y, count, colors){
+    for(let i=0;i<count;i++) game.particles.push({ x, y, vx: rand(-3.4, 3.4), vy: rand(-5.4, -1.2), r: rand(2,5), life: rand(28,48), maxLife: 48, color: colors[Math.floor(Math.random() * colors.length)] });
+  }
+  function worldToScreenY(worldY){ return worldY + game.worldOffsetY; }
+
+  function getAchievementProgress(a){
+    if(a.type === "cakes") return stats.cakes || 0;
+    if(a.type === "perfects") return stats.perfects || 0;
+    if(a.type === "combo") return stats.maxCombo || 0;
+    if(a.type === "score") return stats.bestScore || 0;
+    if(a.type === "games") return stats.games || 0;
+    if(a.type === "missions") return stats.totalMissions || 0;
+    return 0;
+  }
+
+  function checkAchievements(){
+    let unlockedNow = 0;
+    for(const a of ACHIEVEMENTS){
+      if(achievementsClaimed[a.id]) continue;
+      const progress = getAchievementProgress(a);
+      if(progress >= a.target){
+        achievementsClaimed[a.id] = true;
+        addCoins(a.reward);
+        unlockedNow++;
+        showToast("Достижение!", a.name + " +" + a.reward + "🪙");
+      }
+    }
+    if(unlockedNow > 0){ saveAll(); renderAchievements(); }
+  }
+
+  function todayString(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+  function dateDiffInDays(a, b){ return Math.floor((new Date(b+"T00:00:00") - new Date(a+"T00:00:00")) / 86400000); }
+  function canClaimDaily(){ return daily.lastClaim !== todayString(); }
+
+  function claimDailyReward(){
+    if(!canClaimDaily()) return;
+    const today = todayString();
+    if(daily.lastClaim){
+      const diff = dateDiffInDays(daily.lastClaim, today);
+      if(diff === 1) daily.streak = Math.min(7, daily.streak + 1);
+      else if(diff > 1) daily.streak = 1;
+    } else daily.streak = 1;
+    daily.lastClaim = today;
+    const reward = DAILY_REWARDS[daily.streak - 1];
+    addCoins(reward);
+    saveAll(); renderDaily(); updateUI(); showToast("Ежедневная награда", "+" + reward + " монет"); sfxBuy();
+  }
+
+  function resetGame(){
+    game.running = true; game.paused = false; game.gameOver = false;
+    game.score = 0; game.combo = 1; game.sessionCoins = 0; game.pendingCoins = 0;
+    game.worldOffsetY = 0; game.cameraTarget = 0; game.tower = []; game.activeLayer = null; game.particles = [];
+    game.speedBase = 3.2; game.placedThisRun = 0; game.perfectsThisRun = 0; game.perfectStreak = 0; game.maxComboThisRun = 1; game.inputLock = false;
+    pickMission();
+    const baseSkin = getSelectedSkin();
+    const extraWidth = upgrades.width * 12;
+    const width = BASE_WIDTH + extraWidth;
+    game.tower.push({ x: W/2 - width/2, y: floorY() - LAYER_HEIGHT, width, height: LAYER_HEIGHT, theme: baseSkin });
+    spawnNextLayer(); updateUI(); els.tapHint.classList.remove("hidden");
+    if(!onboardingDone) runOnboarding();
+  }
+
+  function spawnNextLayer(){
+    const prev = game.tower[game.tower.length - 1];
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const speed = getCurrentMoveSpeed() * dir;
+    game.activeLayer = { x: dir > 0 ? -prev.width - 20 : W + 20, y: prev.y - LAYER_HEIGHT - 10, width: prev.width, height: LAYER_HEIGHT, speed, moving:true, falling:false, fallSpeed:8.5, theme:getSelectedSkin() };
+  }
+
+  function submitLocalScore(){
+    const entry = { name: (playerName || "Player").slice(0,16), score: bestScore, perfects: stats.perfects || 0, combo: stats.maxCombo || 1, date: new Date().toLocaleDateString() };
+    leaderboard = leaderboard.filter(e => e.name !== entry.name);
+    leaderboard.push(entry);
+    leaderboard.sort((a,b) => b.score - a.score || b.combo - a.combo);
+    leaderboard = leaderboard.slice(0, 12);
+    saveAll();
+    renderLeaderboard();
+    showToast("Рекорд сохранён", entry.name + " — " + entry.score);
+  }
+
+  function startGame(){
+    ensureAudio(); syncMusic();
+    hideAllScreens();
+    stats.games = (stats.games || 0) + 1;
+    saveAll();
+    resetGame();
+    sfxStart();
+  }
+
+  function pauseGame(){ if(!game.running || game.gameOver) return; game.paused = true; els.pauseScreen.classList.remove("hidden"); els.tapHint.classList.add("hidden"); }
+  function resumeGame(){ if(game.gameOver) return; game.paused = false; els.pauseScreen.classList.add("hidden"); els.dailyScreen.classList.add("hidden"); els.hubScreen.classList.add("hidden"); els.leaderboardScreen.classList.add("hidden"); if(game.running) els.tapHint.classList.remove("hidden"); }
+  function hideAllScreens(){ [els.menuScreen, els.pauseScreen, els.gameOverScreen, els.dailyScreen, els.hubScreen, els.leaderboardScreen].forEach(el => el.classList.add("hidden")); }
+  function openMenu(){ hideAllScreens(); els.menuScreen.classList.remove("hidden"); els.tapHint.classList.add("hidden"); game.running = false; game.paused = false; updateUI(); }
+
+  function endGame(){
+    game.gameOver = true; game.running = false; game.paused = false; els.tapHint.classList.add("hidden");
+    const wasRecord = game.score > bestScore;
+    if(wasRecord) bestScore = game.score;
+    stats.bestScore = Math.max(stats.bestScore || 0, game.score);
+    saveAll(); checkAchievements();
+    const reward = Math.max(1, Math.floor(game.score / 2)) + game.pendingCoins;
+    addCoins(reward);
+    els.finalScoreEl.textContent = game.score;
+    els.rewardCoinsEl.textContent = reward;
+    els.finalBestEl.textContent = bestScore;
+    els.finalCoinsEl.textContent = totalCoins;
+    els.finalMissionEl.textContent = Math.round((Math.min(game.missionProgress, game.mission.target) / game.mission.target) * 100) + "%";
+    els.finalComboEl.textContent = "x" + game.maxComboThisRun;
+    els.gameOverScreen.classList.remove("hidden");
+    sfxGameOver();
+    if(wasRecord){ setTimeout(() => { showToast("НОВЫЙ РЕКОРД!", String(bestScore)); sfxRecord(); }, 200); }
+    updateUI();
+  }
+
+  function updateParticles(){
+    for(let i = game.particles.length - 1; i >= 0; i--){
+      const p = game.particles[i]; p.x += p.vx; p.y += p.vy; p.vy += .16; p.life--; if(p.life <= 0) game.particles.splice(i,1);
+    }
+  }
+  function updateDecor(){
+    for(const c of game.clouds){ c.x += c.speed; if(c.x - c.s > W + 50){ c.x = -c.s - 50; c.y = rand(60, H * .55); } }
+  }
+
+  function dropLayer(){
+    if(!game.running || game.paused || game.gameOver || !game.activeLayer || game.inputLock) return;
+    if(game.activeLayer.falling) return;
+    game.inputLock = true;
+    setTimeout(() => game.inputLock = false, 120);
+    game.activeLayer.moving = false; game.activeLayer.falling = true; sfxDrop(); vibrate(8);
+  }
+
+  function updateGame(){
+    updateDecor(); updateParticles();
+    if(!game.running || game.paused || game.gameOver || !game.activeLayer) return;
+    const layer = game.activeLayer;
+    if(layer.moving){
+      layer.x += layer.speed;
+      if(layer.x <= -20 || layer.x + layer.width >= W + 20){ layer.speed *= -1; layer.x = clamp(layer.x, -20, W - layer.width + 20); }
+    }
+    if(layer.falling){
+      layer.y += layer.fallSpeed;
+      const prev = game.tower[game.tower.length - 1];
+      const targetY = prev.y - LAYER_HEIGHT;
+      if(layer.y >= targetY){
+        layer.y = targetY; layer.falling = false;
+        const left = Math.max(layer.x, prev.x);
+        const right = Math.min(layer.x + layer.width, prev.x + prev.width);
+        const overlap = right - left;
+        if(overlap <= MIN_OVERLAP){
+          spawnParticles(layer.x + layer.width/2, layer.y + 8, 24, ["#ff5f99","#ffd86b","#ffffff"]);
+          endGame(); return;
+        }
+        const shift = Math.abs((layer.x + layer.width/2) - (prev.x + prev.width/2));
+        const perfect = shift <= PERFECT_THRESHOLD;
+        let coinGain = 1 + upgrades.coins;
+        let scoreGain = 1;
+        if(perfect){
+          layer.x = prev.x; layer.width = prev.width;
+          game.combo += 1; game.perfectsThisRun += 1; game.perfectStreak += 1; stats.perfects = (stats.perfects || 0) + 1;
+          scoreGain = game.combo + upgrades.perfect; coinGain += 2 + upgrades.perfect;
+          sfxPerfect(); showToast("PERFECT!", "Идеальное попадание"); vibrate([10,30,10]);
+          spawnParticles(layer.x + layer.width/2, layer.y + 2, 22, [ layer.theme.cream, layer.theme.cake, layer.theme.sprinkle, "#ffffff" ]);
+          if(game.perfectStreak >= 3) showToast("Perfect streak!", "x" + game.perfectStreak);
+        } else {
+          layer.x = left; layer.width = overlap; game.combo = 1; game.perfectStreak = 0;
+          if(overlap >= prev.width * .92) coinGain += 1;
+          spawnParticles(layer.x + layer.width/2, layer.y + 8, 12, [ layer.theme.cream, layer.theme.cake, layer.theme.sprinkle ]);
+        }
+        game.score += scoreGain;
+        game.sessionCoins += coinGain;
+        game.pendingCoins += coinGain;
+        game.placedThisRun += 1;
+        stats.cakes = (stats.cakes || 0) + 1;
+        stats.maxCombo = Math.max(stats.maxCombo || 1, game.combo);
+        stats.bestScore = Math.max(stats.bestScore || 0, game.score);
+        stats.bestPerfectStreak = Math.max(stats.bestPerfectStreak || 0, game.perfectStreak);
+        game.maxComboThisRun = Math.max(game.maxComboThisRun, game.combo);
+
+        if(game.combo === 5 || game.combo === 10){ showToast("COMBO x" + game.combo, "Бонус серии"); sfxCombo(); }
+
+        if(game.placedThisRun % 5 === 0){
+          const payout = game.pendingCoins;
+          addCoins(payout);
+          showToast("5 тортов!", "+" + payout + " монет и скорость выше");
+          sfxCoin();
+          game.pendingCoins = 0;
+        }
+
+        game.tower.push({ x: layer.x, y: layer.y, width: layer.width, height: layer.height, theme: layer.theme });
+        updateMission(); updateUI(); checkAchievements(); spawnNextLayer();
+        const topScreenY = worldToScreenY(game.tower[game.tower.length - 1].y);
+        if(topScreenY < H * .36) game.cameraTarget += (H * .36 - topScreenY);
+      }
+    }
+    game.worldOffsetY += (game.cameraTarget - game.worldOffsetY) * .12;
+  }
+
+  function drawRoundedRect(x,y,w,h,r,fillStyle){
+    ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath(); ctx.fillStyle = fillStyle; ctx.fill();
+  }
+  function shadeColor(hex, percent){
+    let f = parseInt(hex.slice(1), 16), t = percent < 0 ? 0 : 255, p = Math.abs(percent) / 100, R = f >> 16, G = (f >> 8) & 255, B = f & 255;
+    return "#" + (0x1000000 + (Math.round((t - R) * p) + R) * 0x10000 + (Math.round((t - G) * p) + G) * 0x100 + (Math.round((t - B) * p) + B)).toString(16).slice(1);
+  }
+  function drawCloud(x,y,s,color="#fff",alpha=.42){
+    ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, s*.26, 0, Math.PI*2); ctx.arc(x+s*.28, y-s*.1, s*.22, 0, Math.PI*2); ctx.arc(x+s*.55, y, s*.27, 0, Math.PI*2); ctx.arc(x+s*.25, y+s*.12, s*.23, 0, Math.PI*2); ctx.fill(); ctx.restore();
+  }
+
+  function drawBackground(){
+    const t = THEMES[selectedTheme];
+    const sky = ctx.createLinearGradient(0,0,0,H); sky.addColorStop(0, t.bg1); sky.addColorStop(.55, t.bg2); sky.addColorStop(1, t.bg3); ctx.fillStyle = sky; ctx.fillRect(0,0,W,H);
+    if([1,4,6,7].includes(selectedTheme)){
+      for(const s of game.stars){ ctx.save(); ctx.globalAlpha = s.a * (.7 + Math.sin(performance.now() * .001 * s.tw) * .2); ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill(); ctx.restore(); }
+    }
+    for(const c of game.clouds) drawCloud(c.x, c.y, c.s, "#ffffff", selectedTheme === 1 ? .18 : .42);
+    const hillY = H - 120;
+    ctx.fillStyle = t.hill1; ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(0,hillY); ctx.quadraticCurveTo(W*.2,hillY-40,W*.4,hillY+5); ctx.quadraticCurveTo(W*.65,hillY+35,W,hillY-25); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = t.hill2; ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(0,hillY+35); ctx.quadraticCurveTo(W*.25,hillY-8,W*.5,hillY+38); ctx.quadraticCurveTo(W*.76,hillY+64,W,hillY+15); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = t.ground; for(let x=-30;x<W+50;x+=60){ ctx.beginPath(); ctx.arc(x, floorY()+4, 24, Math.PI, 0); ctx.fill(); } ctx.fillRect(0, floorY()+4, W, H-floorY());
+  }
+
+  function drawCakeLayer(layer){
+    const x = layer.x, y = worldToScreenY(layer.y), w = layer.width, h = layer.height, t = layer.theme;
+    drawRoundedRect(x+4, y+h-1, w, 10, 6, "rgba(0,0,0,.09)");
+    const cakeGrad = ctx.createLinearGradient(x, y+8, x, y+h); cakeGrad.addColorStop(0, t.cake); cakeGrad.addColorStop(1, shadeColor(t.cake, -14)); drawRoundedRect(x, y+9, w, h-9, 10, cakeGrad);
+    const creamGrad = ctx.createLinearGradient(x, y, x, y+16); creamGrad.addColorStop(0, "#ffffff"); creamGrad.addColorStop(.35, t.cream); creamGrad.addColorStop(1, shadeColor(t.cream, -8)); drawRoundedRect(x, y, w, 16, 10, creamGrad);
+    ctx.fillStyle = t.cream; for(let i=10;i<w-10;i+=20){ ctx.beginPath(); ctx.arc(x+i, y+14, 5.6, 0, Math.PI*2); ctx.fill(); }
+    ctx.fillStyle = t.sprinkle; for(let i=0;i<Math.max(3, Math.floor(w/26));i++){ const sx = x + 10 + (i+1)*(w/(Math.max(4, Math.floor(w/24)+1))); const sy = y + 4 + ((i % 2) * 5); ctx.save(); ctx.translate(sx, sy); ctx.rotate((i % 2 === 0 ? -1 : 1) * .55); ctx.fillRect(-4, -1, 8, 2); ctx.restore(); }
+    const cherryCount = Math.max(1, Math.floor(w / 56));
+    for(let i=0;i<cherryCount;i++){
+      const cx = x + ((i+1) * w / (cherryCount+1)); const cy = y - 1;
+      ctx.strokeStyle = "#4fb56a"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, cy-4); ctx.quadraticCurveTo(cx+2, cy-10, cx+5, cy-14); ctx.stroke();
+      const cherryGrad = ctx.createRadialGradient(cx-1,cy-2,1,cx,cy,6); cherryGrad.addColorStop(0, "#ffd3de"); cherryGrad.addColorStop(.35, t.cherry); cherryGrad.addColorStop(1, shadeColor(t.cherry, -18)); ctx.fillStyle = cherryGrad; ctx.beginPath(); ctx.arc(cx, cy, 5.5, 0, Math.PI*2); ctx.fill();
+    }
+  }
+  function drawGuide(){
+    if(!game.running || game.paused || !game.activeLayer) return;
+    const layer = game.activeLayer, x = layer.x + layer.width/2, prev = game.tower[game.tower.length-1];
+    ctx.save(); ctx.strokeStyle = "rgba(122,40,81,.14)"; ctx.lineWidth = 2; ctx.setLineDash([6,7]); ctx.beginPath(); ctx.moveTo(x, 40); ctx.lineTo(x, worldToScreenY(prev.y) + 70); ctx.stroke(); ctx.restore(); ctx.setLineDash([]);
+  }
+  function drawParticles(){
+    for(const p of game.particles){ ctx.save(); ctx.globalAlpha = p.life / p.maxLife; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, worldToScreenY(p.y), p.r, 0, Math.PI*2); ctx.fill(); ctx.restore(); }
+  }
+  function render(){
+    ctx.clearRect(0,0,W,H); drawBackground(); drawGuide(); for(const layer of game.tower) drawCakeLayer(layer); if(game.activeLayer) drawCakeLayer(game.activeLayer); drawParticles(); requestAnimationFrame(render);
+  }
+  function tick(){ updateGame(); requestAnimationFrame(tick); }
+
+  function getUpgradePrice(u){ return u.basePrice + (upgrades[u.id] || 0) * Math.floor(u.basePrice * 0.7); }
+
+  function renderUpgrades(){
+    els.upgradeGrid.innerHTML = ""; els.hubCoinsEl.textContent = totalCoins;
+    UPGRADE_LIST.forEach(u => {
+      const level = upgrades[u.id] || 0, maxed = level >= u.max, price = getUpgradePrice(u);
+      const el = document.createElement("div"); el.className = "upgradeItem";
+      el.innerHTML = `<div class="itemName">${u.name}${maxed ? ' <span class="badge">MAX</span>' : ''}</div><div class="itemDesc">${u.desc}</div><div class="tiny">Уровень: ${level}/${u.max}</div><div class="bar"><div class="fill" style="width:${(level/u.max)*100}%"></div></div><div class="row"></div><div class="tiny">${maxed ? 'Прокачано полностью' : 'Цена: ' + price + ' 🪙'}</div>`;
+      const row = el.querySelector(".row"); const btn = document.createElement("button"); btn.className = maxed ? "smallButton ghost" : "smallButton green"; btn.textContent = maxed ? "Максимум" : "Улучшить"; btn.onclick = () => buyUpgrade(u.id); row.appendChild(btn); els.upgradeGrid.appendChild(el);
+    });
+  }
+  function buyUpgrade(id){
+    const upgrade = UPGRADE_LIST.find(u => u.id === id); if(!upgrade) return; if((upgrades[id] || 0) >= upgrade.max) return;
+    const price = getUpgradePrice(upgrade); if(totalCoins < price) return;
+    totalCoins -= price; upgrades[id] = (upgrades[id] || 0) + 1; saveAll(); updateUI(); renderUpgrades(); sfxBuy(); showToast("Прокачка", upgrade.name + " уровень " + upgrades[id]);
+  }
+
+  function renderAchievements(){
+    els.achGrid.innerHTML = "";
+    ACHIEVEMENTS.forEach(a => {
+      const progress = getAchievementProgress(a), done = !!achievementsClaimed[a.id], percent = Math.min(100, (progress / a.target) * 100);
+      const el = document.createElement("div"); el.className = "achItem";
+      el.innerHTML = `<div class="itemName">${a.name}${done ? ' <span class="badge">Готово</span>' : ''}</div><div class="itemDesc">${a.desc}</div><div class="tiny">Прогресс: ${Math.min(progress, a.target)}/${a.target}</div><div class="bar"><div class="fill" style="width:${percent}%"></div></div><div class="tiny">Награда: ${a.reward} 🪙</div>`;
+      els.achGrid.appendChild(el);
+    });
+  }
+
+  function renderShop(){
+    els.shopGrid.innerHTML = "";
+    SKINS.forEach(skin => {
+      const unlocked = unlockedSkins.includes(skin.id), selected = selectedSkin === skin.id;
+      const el = document.createElement("div"); el.className = "shopItem";
+      el.innerHTML = `<div class="skinPreview"><div class="cakeSample"><div class="sampleCream" style="background:${skin.cream}"></div><div class="sampleCakeBody" style="background:${skin.cake}"></div><div class="sampleCherry" style="background:${skin.cherry}"></div></div></div><div class="itemName">${skin.name}${selected ? ' <span class="badge">Выбран</span>' : ''}</div><div class="itemDesc">${skin.desc}</div><div class="row"></div><div class="tiny">${unlocked ? "Открыт" : "Цена: " + skin.price + " 🪙"}</div>`;
+      const row = el.querySelector(".row");
+      if(!unlocked){ const buyBtn = document.createElement("button"); buyBtn.className = "smallButton gold"; buyBtn.textContent = "Купить"; buyBtn.onclick = () => buySkin(skin.id); row.appendChild(buyBtn); }
+      else { const useBtn = document.createElement("button"); useBtn.className = selected ? "smallButton ghost" : "smallButton"; useBtn.textContent = selected ? "Выбрано" : "Выбрать"; useBtn.onclick = () => selectSkin(skin.id); row.appendChild(useBtn); }
+      els.shopGrid.appendChild(el);
+    });
+  }
+  function renderThemes(){
+    els.themeGrid.innerHTML = "";
+    THEMES.forEach((theme, index) => {
+      const selected = selectedTheme === index;
+      const el = document.createElement("div"); el.className = "themeItem";
+      el.innerHTML = `<div class="skinPreview" style="background:linear-gradient(180deg, ${theme.bg1}, ${theme.bg2}, ${theme.bg3})"><div style="position:absolute;left:0;right:0;bottom:0;height:26px;background:${theme.ground};"></div><div style="position:absolute;left:-10px;right:-10px;bottom:14px;height:30px;background:${theme.hill1};border-radius:50% 50% 0 0;"></div></div><div class="itemName">${theme.name}${selected ? ' <span class="badge">Активна</span>' : ''}</div><div class="itemDesc">${theme.desc}</div><div class="row"><button class="${selected ? 'smallButton ghost' : 'smallButton'}">${selected ? 'Выбрано' : 'Выбрать'}</button></div>`;
+      el.querySelector("button").onclick = () => selectTheme(index);
+      els.themeGrid.appendChild(el);
+    });
+  }
+  function renderDaily(){
+    els.dailyDays.innerHTML = ""; const streak = daily.streak || 1; const canClaim = canClaimDaily();
+    DAILY_REWARDS.forEach((reward, i) => {
+      const day = i + 1, current = streak === day, past = streak > day;
+      const el = document.createElement("div"); el.className = "dailyItem";
+      el.innerHTML = `<div class="itemName">День ${day}${current ? ' <span class="badge">Сейчас</span>' : ''}</div><div class="itemDesc">Награда за вход</div><div class="tiny">+${reward} 🪙 ${past ? "получено ранее" : ""}</div>`;
+      els.dailyDays.appendChild(el);
+    });
+    els.streakEl.textContent = streak; els.nextRewardEl.textContent = DAILY_REWARDS[streak - 1] || DAILY_REWARDS[0]; els.claimDailyBtn.textContent = canClaim ? "Забрать" : "Уже получено"; els.claimDailyBtn.className = canClaim ? "bigButton gold" : "bigButton ghost"; els.claimDailyBtn.disabled = !canClaim;
+  }
+  function renderStats(){
+    els.statsGrid.innerHTML = "";
+    const cards = [
+      ["Игры", stats.games || 0], ["Торты", stats.cakes || 0], ["Perfect", stats.perfects || 0], ["Рекорд", stats.bestScore || 0], ["Комбо max", "x" + (stats.maxCombo || 1)], ["Perfect streak", stats.bestPerfectStreak || 0], ["Миссии", stats.totalMissions || 0], ["Игрок", playerName]
+    ];
+    cards.forEach(([k,v]) => { const el = document.createElement("div"); el.className = "miniBox"; el.innerHTML = `<div class="k">${k}</div><div class="v">${v}</div>`; els.statsGrid.appendChild(el); });
+  }
+  function renderLeaderboard(){
+    els.leaderboardGrid.innerHTML = "";
+    if(leaderboard.length === 0){ const el = document.createElement("div"); el.className = "leaderItem"; el.innerHTML = `<div class="itemName">Пока пусто</div><div class="itemDesc">Сохрани свой рекорд и он появится здесь.</div>`; els.leaderboardGrid.appendChild(el); return; }
+    leaderboard.forEach((entry, i) => {
+      const el = document.createElement("div"); el.className = "leaderItem"; el.innerHTML = `<div class="itemName">#${i+1} ${entry.name}</div><div class="itemDesc">Очки: ${entry.score} · Комбо: x${entry.combo} · ${entry.date}</div>`; els.leaderboardGrid.appendChild(el);
+    });
+  }
+
+  function buySkin(id){ const skin = SKINS.find(s => s.id === id); if(!skin || unlockedSkins.includes(id) || totalCoins < skin.price) return; totalCoins -= skin.price; unlockedSkins.push(id); saveAll(); updateUI(); renderShop(); sfxBuy(); }
+  function selectSkin(id){ if(!unlockedSkins.includes(id)) return; selectedSkin = id; saveAll(); renderShop(); sfxSelect(); }
+  function selectTheme(index){ selectedTheme = index; applyTheme(index); saveAll(); renderThemes(); sfxSelect(); }
+
+  function openHub(){ renderUpgrades(); renderAchievements(); renderShop(); renderThemes(); renderStats(); els.hubScreen.classList.remove("hidden"); els.dailyScreen.classList.add("hidden"); els.leaderboardScreen.classList.add("hidden"); els.tapHint.classList.add("hidden"); }
+  function closeHub(){ els.hubScreen.classList.add("hidden"); if(game.paused) els.pauseScreen.classList.remove("hidden"); else if(game.running && !game.gameOver) els.tapHint.classList.remove("hidden"); }
+  function openDaily(){ renderDaily(); els.dailyScreen.classList.remove("hidden"); els.hubScreen.classList.add("hidden"); els.leaderboardScreen.classList.add("hidden"); els.tapHint.classList.add("hidden"); }
+  function closeDaily(){ els.dailyScreen.classList.add("hidden"); if(game.paused) els.pauseScreen.classList.remove("hidden"); else if(game.running && !game.gameOver) els.tapHint.classList.remove("hidden"); }
+  function openLeaderboard(){ renderLeaderboard(); els.leaderboardScreen.classList.remove("hidden"); els.hubScreen.classList.add("hidden"); els.dailyScreen.classList.add("hidden"); els.tapHint.classList.add("hidden"); }
+  function closeLeaderboard(){ els.leaderboardScreen.classList.add("hidden"); if(game.paused) els.pauseScreen.classList.remove("hidden"); else if(game.running && !game.gameOver) els.tapHint.classList.remove("hidden"); }
+
+  function runOnboarding(){
+    const steps = [ ["Нажми", "чтобы поставить слой"], ["Perfect", "даёт больше очков и монет"], ["Каждые 5 тортов", "пачка монет и ускорение"] ];
+    steps.forEach((s, i) => setTimeout(() => showToast(s[0], s[1]), 450 + i * 1200));
+    onboardingDone = true; saveAll();
+  }
+
+  function exportSave(){
+    const data = { bestScore,totalCoins,unlockedSkins,selectedSkin,selectedTheme,audioEnabled,musicEnabled,vibrationEnabled,upgrades,achievementsClaimed,stats,daily,leaderboard,playerName,language,onboardingDone };
+    prompt("Скопируй сохранение", btoa(unescape(encodeURIComponent(JSON.stringify(data)))));
+  }
+  function importSave(){
+    const raw = prompt("Вставь сохранение"); if(!raw) return;
+    try{
+      const data = JSON.parse(decodeURIComponent(escape(atob(raw))));
+      bestScore = data.bestScore || 0; totalCoins = data.totalCoins || 0; unlockedSkins = data.unlockedSkins || [0]; selectedSkin = data.selectedSkin || 0; selectedTheme = data.selectedTheme || 0; audioEnabled = !!data.audioEnabled; musicEnabled = !!data.musicEnabled; vibrationEnabled = !!data.vibrationEnabled; upgrades = data.upgrades || upgrades; achievementsClaimed = data.achievementsClaimed || {}; stats = data.stats || stats; daily = data.daily || daily; leaderboard = data.leaderboard || []; playerName = data.playerName || "Player"; language = data.language || "ru"; onboardingDone = !!data.onboardingDone;
+      applyTheme(selectedTheme); clampSave(); saveAll(); updateUI(); renderUpgrades(); renderAchievements(); renderShop(); renderThemes(); renderDaily(); renderLeaderboard(); renderStats(); syncMusic(); showToast("Импорт", "Сохранение загружено");
+    } catch(e){ showToast("Ошибка", "Не удалось импортировать сохранение"); }
+  }
+  function resetProgress(){
+    if(!confirm("Сбросить весь прогресс?")) return;
+    Object.values(STORAGE).forEach(k => localStorage.removeItem(k)); location.reload();
+  }
+
+  document.getElementById("startBtn").onclick = startGame;
+  document.getElementById("restartBtn").onclick = startGame;
+  document.getElementById("overMenuBtn").onclick = openMenu;
+  document.getElementById("pauseBtn").onclick = () => { if(game.running && !game.paused && !game.gameOver) pauseGame(); else if(game.paused) resumeGame(); };
+  document.getElementById("resumeBtn").onclick = resumeGame;
+  document.getElementById("pauseMenuBtn").onclick = openMenu;
+  document.getElementById("hubBtn").onclick = openHub;
+  document.getElementById("hubMenuBtn").onclick = openHub;
+  document.getElementById("hubPauseBtn").onclick = openHub;
+  document.getElementById("hubOverBtn").onclick = openHub;
+  document.getElementById("dailyBtn").onclick = openDaily;
+  document.getElementById("dailyPauseBtn").onclick = openDaily;
+  document.getElementById("closeDailyBtn").onclick = closeDaily;
+  document.getElementById("claimDailyBtn").onclick = claimDailyReward;
+  document.getElementById("closeHubBtn").onclick = closeHub;
+  document.getElementById("leaderboardBtn").onclick = openLeaderboard;
+  document.getElementById("leaderboardPauseBtn").onclick = openLeaderboard;
+  document.getElementById("leaderboardOverBtn").onclick = openLeaderboard;
+  document.getElementById("closeLeaderboardBtn").onclick = closeLeaderboard;
+  document.getElementById("submitScoreBtn").onclick = submitLocalScore;
+  document.getElementById("saveNameBtn").onclick = () => { playerName = (els.playerNameInput.value || "Player").trim().slice(0,16) || "Player"; saveAll(); renderStats(); renderLeaderboard(); showToast("Игрок", playerName); };
+  document.getElementById("soundBtn").onclick = () => { audioEnabled = !audioEnabled; saveAll(); updateUI(); if(audioEnabled) sfxSelect(); };
+  document.getElementById("musicBtn").onclick = () => { musicEnabled = !musicEnabled; saveAll(); updateUI(); syncMusic(); sfxSelect(); };
+  document.getElementById("vibrationBtn").onclick = () => { vibrationEnabled = !vibrationEnabled; saveAll(); updateUI(); sfxSelect(); };
+  document.getElementById("languageSelect").onchange = (e) => { language = e.target.value; saveAll(); updateUI(); };
+  document.getElementById("exportBtn").onclick = exportSave;
+  document.getElementById("importBtn").onclick = importSave;
+  document.getElementById("resetProgressBtn").onclick = resetProgress;
+
+  document.querySelectorAll(".tabBtn").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".tabBtn").forEach(b => b.classList.remove("active")); btn.classList.add("active");
+      ["upgrades","achievements","skins","themes","stats","settings"].forEach(tab => document.getElementById("tab-" + tab).classList.add("hidden"));
+      document.getElementById("tab-" + btn.dataset.tab).classList.remove("hidden");
+    };
+  });
+
+  function handleGameInput(){
+    if(els.menuScreen.classList.contains("hidden") && els.pauseScreen.classList.contains("hidden") && els.gameOverScreen.classList.contains("hidden") && els.dailyScreen.classList.contains("hidden") && els.hubScreen.classList.contains("hidden") && els.leaderboardScreen.classList.contains("hidden")) dropLayer();
+  }
+
+  addEventListener("keydown", (e) => {
+    if(e.code === "Space"){
+      e.preventDefault();
+      if(!els.menuScreen.classList.contains("hidden")) startGame();
+      else if(!els.gameOverScreen.classList.contains("hidden")) startGame();
+      else if(game.paused) resumeGame();
+      else handleGameInput();
+    }
+    if(e.code === "Escape"){
+      if(!els.hubScreen.classList.contains("hidden")) closeHub();
+      else if(!els.dailyScreen.classList.contains("hidden")) closeDaily();
+      else if(!els.leaderboardScreen.classList.contains("hidden")) closeLeaderboard();
+      else if(game.running && !game.gameOver && !game.paused) pauseGame();
+      else if(game.paused) resumeGame();
+    }
+  });
+
+  addEventListener("mousedown", handleGameInput);
+  addEventListener("touchstart", (e) => {
+    if(els.menuScreen.classList.contains("hidden") && els.pauseScreen.classList.contains("hidden") && els.gameOverScreen.classList.contains("hidden") && els.dailyScreen.classList.contains("hidden") && els.hubScreen.classList.contains("hidden") && els.leaderboardScreen.classList.contains("hidden")) e.preventDefault();
+    handleGameInput();
+  }, { passive:false });
+
+  addEventListener("blur", () => { if(game.running && !game.paused && !game.gameOver) pauseGame(); });
+  document.addEventListener("visibilitychange", () => { if(document.hidden && game.running && !game.paused && !game.gameOver) pauseGame(); });
+
+  applyTheme(selectedTheme); syncMusic(); updateUI(); renderUpgrades(); renderAchievements(); renderShop(); renderThemes(); renderDaily(); renderLeaderboard(); renderStats(); render(); tick(); openMenu();
+})();
+</script>
+</body>
+</html>

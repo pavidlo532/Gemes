@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GameVault JSON</title>
+  <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=tRj0JZS25_v9zM-5NEDKdXxMHb-Vsj2b9zIAPx8CC1ljzvdGZ-LnbV5Kx0cWHX_jpdGvcwZKhcW-lC7lMQNATHZt25OXIsTZUyGdNK2hnu-kQBcAHR_DODVwlPzjtR3flGmULt_EoTUlTEjjUi9UmovyHLwNnnp6DiNA_26aezbDs1N5ZgFvUDghG709V7QDDoW4t4HCgD3cXJ1SlyTGvm2oDJZrRb9qdpPM6j42ia_hnM6piCTvUP4IOgv7ujBVNEL5l2iEVErA0LeC7fGUgA" charset="UTF-8"></script><style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #0b1020;
+      --bg-2: #11162a;
+      --panel: rgba(18, 24, 45, 0.82);
+      --panel-2: rgba(28, 35, 64, 0.92);
+      --text: #eef2ff;
+      --muted: #a8b1d1;
+      --accent: #7c3aed;
+      --danger: #ef4444;
+      --border: rgba(255,255,255,0.09);
+      --shadow: 0 18px 50px rgba(0,0,0,0.35);
+      --radius: 24px;
+      --input-bg: rgba(255,255,255,0.04);
+    }
+    body.light {
+      --bg: #eef2ff;
+      --bg-2: #dbe4ff;
+      --panel: rgba(255,255,255,0.82);
+      --panel-2: rgba(255,255,255,0.95);
+      --text: #111827;
+      --muted: #4b5563;
+      --accent: #6d28d9;
+      --danger: #dc2626;
+      --border: rgba(17,24,39,0.10);
+      --shadow: 0 18px 50px rgba(31,41,55,0.12);
+      --input-bg: rgba(17,24,39,0.03);
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      letter-spacing: 0;
+      font-kerning: normal;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124,58,237,0.28), transparent 28%),
+        radial-gradient(circle at top right, rgba(34,197,94,0.18), transparent 25%),
+        linear-gradient(135deg, var(--bg), var(--bg-2) 55%, var(--bg));
+      min-height: 100vh;
+    }
+    .container {
+      width: min(1380px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+    .hidden { display: none !important; }
+    .glass {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+    .topbar {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .hero-card, .panel { padding: 24px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(124,58,237,0.16);
+      border: 1px solid rgba(124,58,237,0.32);
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 54px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.02;
+    }
+    .muted, .hero p, .sub, .desc { color: var(--muted); }
+    .hero p { margin: 0; line-height: 1.6; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .stat {
+      padding: 22px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .stat strong { font-size: 34px; margin-bottom: 8px; }
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    form { display: grid; gap: 12px; }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      padding: 14px;
+      border-radius: 16px;
+      outline: none;
+      font-size: 15px;
+      font-family: inherit;
+    }
+    textarea { resize: vertical; min-height: 96px; }
+    .btn {
+      border: 0;
+      border-radius: 16px;
+      padding: 14px 18px;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #4f46e5); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-danger { background: linear-gradient(135deg, var(--danger), #b91c1c); }
+    .btn-small { padding: 10px 14px; font-size: 14px; border-radius: 14px; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr 180px 180px;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+    .card {
+      overflow: hidden;
+      border-radius: 24px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .card-image {
+      height: 190px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+    .card-image::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(9,13,25,.85), rgba(9,13,25,.12));
+    }
+    .rating, .favorite {
+      position: absolute;
+      z-index: 1;
+      background: rgba(0,0,0,.48);
+      border: 1px solid rgba(255,255,255,.15);
+      color: white;
+    }
+    .rating {
+      top: 14px;
+      right: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .favorite {
+      top: 14px;
+      left: 14px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #facc15;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .card-body { padding: 18px; }
+    .card-title {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+    .meta, .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .meta { margin-bottom: 12px; }
+    .actions { margin-top: 16px; }
+    .chip, .file-badge {
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .chip { background: rgba(255,255,255,0.06); }
+    .file-badge {
+      display: inline-block;
+      margin-top: 10px;
+      background: rgba(34,197,94,0.12);
+      border-color: rgba(34,197,94,0.25);
+    }
+    .mini-btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
+      font-family: inherit;
+    }
+    .mini-btn.delete {
+      color: #fecaca;
+      border-color: rgba(239,68,68,.25);
+      background: rgba(239,68,68,.10);
+    }
+    .owner-box, .login-box {
+      margin-bottom: 18px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+    }
+    .owner-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .status-pill {
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      border: 1px solid var(--border);
+    }
+    .status-owner { background: rgba(34,197,94,0.14); color: #86efac; }
+    .status-guest { background: rgba(245,158,11,0.14); color: #fcd34d; }
+    .view-banner {
+      height: 320px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+    .view-banner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(9,13,25,.85), rgba(9,13,25,.15));
+    }
+    .view-content { padding: 24px; }
+    .view-title {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+    .view-description {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.8;
+      letter-spacing: 0.01em;
+      margin-bottom: 20px;
+    }
+    .empty {
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--muted);
+      border: 1px dashed rgba(255,255,255,.16);
+      border-radius: 24px;
+      background: rgba(255,255,255,.03);
+    }
+    @media (max-width: 980px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .toolbar, .row, .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <section id="loginPage" class="hidden">
+    <div class="container">
+      <div class="glass login-box" style="max-width:520px; margin:60px auto; padding:28px;">
+        <div class="badge">🔐 Вход владельца</div>
+        <h1>Панель владельца</h1>
+        <p class="muted">Войди как владелец, чтобы изменять games.json через сайт.</p>
+        <input type="password" id="loginPassword" placeholder="Введите пароль владельца" />
+        <div class="actions" style="margin-top:14px;">
+          <button class="btn btn-primary" id="loginBtn">Войти</button>
+          <button class="btn btn-secondary" id="backCatalogBtn">Назад</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="catalogPage">
+    <div class="container">
+      <div class="topbar">
+        <button class="btn btn-secondary btn-small" id="themeToggle">🌙 Тёмная тема</button>
+        <button class="btn btn-secondary btn-small" id="openLoginBtn">🔐 Страница входа</button>
+        <button class="btn btn-secondary btn-small" id="exportBtn">⬇ Экспорт JSON</button>
+        <button class="btn btn-secondary btn-small hidden" id="logoutBtn">🚪 Выйти</button>
+      </div>
+
+      <section class="hero">
+        <div class="glass hero-card">
+          <div class="badge">🎮 GameVault + games.json</div>
+          <h1>Каталог игр</h1>
+          <p>Игры хранятся не в браузере, а в отдельном файле games.json на сервере.</p>
+        </div>
+        <div class="stats">
+          <div class="glass stat"><strong id="gamesCount">0</strong><span>Всего игр</span></div>
+          <div class="glass stat"><strong id="favoritesCount">0</strong><span>В избранном</span></div>
+          <div class="glass stat"><strong id="ownerStat">Гость</strong><span>Текущий режим</span></div>
+          <div class="glass stat"><strong>JSON</strong><span>Хранение в файле</span></div>
+        </div>
+      </section>
+
+      <section class="layout">
+        <aside class="glass panel">
+          <h2 id="formTitle">Добавить игру</h2>
+          <p class="sub">Все поля можно оставлять пустыми.</p>
+
+          <div class="owner-box">
+            <div class="owner-status">
+              <span>Статус доступа</span>
+              <span class="status-pill status-guest" id="ownerStatus">Гость</span>
+            </div>
+            <div class="muted">Только владелец может менять games.json.</div>
+          </div>
+
+          <form id="gameForm" class="hidden">
+            <input type="text" id="title" placeholder="Название игры (можно пусто)" />
+            <div class="row">
+              <input type="text" id="genre" placeholder="Жанр (можно пусто)" />
+              <input type="text" id="platform" placeholder="Платформа (можно пусто)" />
+            </div>
+            <div class="row">
+              <input type="number" id="rating" placeholder="Рейтинг 1-10 (можно пусто)" min="1" max="10" />
+              <input type="url" id="image" placeholder="Ссылка на картинку (можно пусто)" />
+            </div>
+            <div>
+              <input type="file" id="imageFile" accept="image/*" />
+            </div>
+            <div>
+              <input type="file" id="htmlFile" accept=".html,text/html" />
+            </div>
+            <textarea id="description" placeholder="Описание (можно пусто)"></textarea>
+            <div class="row">
+              <button class="btn btn-primary" type="submit" id="submitBtn">+ Добавить игру</button>
+              <button class="btn btn-secondary hidden" type="button" id="cancelEditBtn">Отмена</button>
+            </div>
+          </form>
+
+          <div id="ownerActions" class="hidden">
+            <div class="row">
+              <button class="btn btn-secondary" type="button" id="importBtn">⬆ Импорт JSON</button>
+              <input type="file" id="importFile" accept="application/json" class="hidden" />
+              <input type="file" id="bulkImportFile" accept="application/json" class="hidden" />
+              <button class="btn btn-danger" type="button" id="clearBtn">Очистить всё</button>
+            </div>
+            <p class="muted">Левый клик по импорту заменяет список. Правый клик добавляет игры к текущему списку.</p>
+          </div>
+        </aside>
+
+        <main class="glass panel">
+          <h2>Каталог игр</h2>
+          <p class="sub">Поиск, сортировка, редактирование и отдельная страница просмотра игры.</p>
+          <div class="toolbar">
+            <input type="text" id="search" placeholder="Поиск по названию..." />
+            <select id="filter">
+              <option value="all">Все игры</option>
+              <option value="favorites">Только избранные</option>
+              <option value="high">Рейтинг 8+</option>
+            </select>
+            <select id="sort">
+              <option value="new">Сначала новые</option>
+              <option value="old">Сначала старые</option>
+              <option value="rating-desc">Рейтинг: выше</option>
+              <option value="rating-asc">Рейтинг: ниже</option>
+              <option value="name-asc">По названию А-Я</option>
+            </select>
+          </div>
+          <div id="gamesGrid" class="games-grid"></div>
+        </main>
+      </section>
+    </div>
+  </section>
+
+  <section id="viewPage" class="hidden">
+    <div class="container">
+      <div class="topbar">
+        <button class="btn btn-secondary btn-small" id="backToCatalogBtn">← Назад в каталог</button>
+        <button class="btn btn-secondary btn-small" id="viewThemeToggle">🎨 Сменить тему</button>
+      </div>
+      <div class="glass">
+        <div class="view-banner" id="viewBanner"></div>
+        <div class="view-content">
+          <div class="badge" id="viewBadge">🎮 Просмотр игры</div>
+          <h1 class="view-title" id="viewTitle">Игра</h1>
+          <div class="meta" id="viewMeta"></div>
+          <p class="view-description" id="viewDescription">Описание игры.</p>
+          <div class="actions">
+            <button class="mini-btn" id="viewFavoriteBtn">В избранное</button>
+            <button class="mini-btn hidden" id="openAttachedHtmlBtn">Открыть HTML-файл</button>
+            <button class="mini-btn hidden" id="editFromViewBtn">Редактировать</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const defaultImage = '';
+
+    const els = {
+      loginPage: document.getElementById('loginPage'),
+      catalogPage: document.getElementById('catalogPage'),
+      viewPage: document.getElementById('viewPage'),
+      loginPassword: document.getElementById('loginPassword'),
+      loginBtn: document.getElementById('loginBtn'),
+      backCatalogBtn: document.getElementById('backCatalogBtn'),
+      openLoginBtn: document.getElementById('openLoginBtn'),
+      logoutBtn: document.getElementById('logoutBtn'),
+      themeToggle: document.getElementById('themeToggle'),
+      viewThemeToggle: document.getElementById('viewThemeToggle'),
+      gamesCount: document.getElementById('gamesCount'),
+      favoritesCount: document.getElementById('favoritesCount'),
+      ownerStat: document.getElementById('ownerStat'),
+      ownerStatus: document.getElementById('ownerStatus'),
+      gameForm: document.getElementById('gameForm'),
+      formTitle: document.getElementById('formTitle'),
+      title: document.getElementById('title'),
+      genre: document.getElementById('genre'),
+      platform: document.getElementById('platform'),
+      rating: document.getElementById('rating'),
+      image: document.getElementById('image'),
+      imageFile: document.getElementById('imageFile'),
+      htmlFile: document.getElementById('htmlFile'),
+      description: document.getElementById('description'),
+      submitBtn: document.getElementById('submitBtn'),
+      cancelEditBtn: document.getElementById('cancelEditBtn'),
+      ownerActions: document.getElementById('ownerActions'),
+      importBtn: document.getElementById('importBtn'),
+      importFile: document.getElementById('importFile'),
+      bulkImportFile: document.getElementById('bulkImportFile'),
+      clearBtn: document.getElementById('clearBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      search: document.getElementById('search'),
+      filter: document.getElementById('filter'),
+      sort: document.getElementById('sort'),
+      gamesGrid: document.getElementById('gamesGrid'),
+      backToCatalogBtn: document.getElementById('backToCatalogBtn'),
+      viewBanner: document.getElementById('viewBanner'),
+      viewBadge: document.getElementById('viewBadge'),
+      viewTitle: document.getElementById('viewTitle'),
+      viewMeta: document.getElementById('viewMeta'),
+      viewDescription: document.getElementById('viewDescription'),
+      viewFavoriteBtn: document.getElementById('viewFavoriteBtn'),
+      openAttachedHtmlBtn: document.getElementById('openAttachedHtmlBtn'),
+      editFromViewBtn: document.getElementById('editFromViewBtn'),
+    };
+
+    let games = [];
+    let isOwner = sessionStorage.getItem('games-owner-mode') === 'true';
+    let ownerPassword = sessionStorage.getItem('games-owner-password') || '';
+    let currentTheme = localStorage.getItem('games-theme') || 'dark';
+    let editingId = null;
+    let viewingId = null;
+    let tempImageData = '';
+    let tempHtmlContent = '';
+    let tempHtmlFileName = '';
+
+    function setPage(page) {
+      els.loginPage.classList.toggle('hidden', page !== 'login');
+      els.catalogPage.classList.toggle('hidden', page !== 'catalog');
+      els.viewPage.classList.toggle('hidden', page !== 'view');
+    }
+
+    function updateHash(hash) {
+      if (location.hash !== hash) location.hash = hash;
+    }
+
+    function applyTheme() {
+      document.body.classList.toggle('light', currentTheme === 'light');
+      els.themeToggle.textContent = currentTheme === 'light' ? '🌙 Тёмная тема' : '☀ Светлая тема';
+      els.viewThemeToggle.textContent = currentTheme === 'light' ? '🌙 Тёмная тема' : '☀ Светлая тема';
+      localStorage.setItem('games-theme', currentTheme);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text == null ? '' : text;
+      return div.innerHTML;
+    }
+
+    function getDisplayTitle(game) {
+      return (game.title || '').trim() || 'Без названия';
+    }
+    function getDisplayGenre(game) {
+      return (game.genre || '').trim() || 'Не указан жанр';
+    }
+    function getDisplayPlatform(game) {
+      return (game.platform || '').trim() || 'Не указана платформа';
+    }
+    function getDisplayDescription(game) {
+      return (game.description || '').trim() || 'Описание не добавлено.';
+    }
+    function getDisplayRating(game) {
+      return game.rating === '' || game.rating == null || Number.isNaN(Number(game.rating)) ? '—' : String(game.rating);
+    }
+
+    function normalizeGameData(game = {}) {
+      return {
+        id: game.id || Math.random().toString(36).slice(2),
+        title: game.title || '',
+        genre: game.genre || '',
+        platform: game.platform || '',
+        rating: game.rating === undefined || game.rating === null ? '' : game.rating,
+        image: game.image || defaultImage,
+        description: game.description || '',
+        favorite: Boolean(game.favorite),
+        htmlContent: game.htmlContent || '',
+        htmlFileName: game.htmlFileName || '',
+        createdAt: game.createdAt || Date.now(),
+      };
+    }
+
+    async function api(path, options = {}) {
+      const headers = { ...(options.headers || {}) };
+      if (isOwner && ownerPassword) headers['x-owner-password'] = ownerPassword;
+      if (!(options.body instanceof FormData)) headers['Content-Type'] = 'application/json';
+      const res = await fetch(path, { ...options, headers });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Ошибка запроса');
+      }
+      return res.json();
+    }
+
+    async function loadGames() {
+      const data = await api('/api/games', { method: 'GET', headers: {} });
+      games = Array.isArray(data) ? data.map(normalizeGameData) : [];
+      renderGames();
+    }
+
+    function updateOwnerUI() {
+      els.gameForm.classList.toggle('hidden', !isOwner);
+      els.ownerActions.classList.toggle('hidden', !isOwner);
+      els.ownerStatus.textContent = isOwner ? 'Владелец' : 'Гость';
+      els.ownerStatus.className = `status-pill ${isOwner ? 'status-owner' : 'status-guest'}`;
+      els.ownerStat.textContent = isOwner ? 'Владелец' : 'Гость';
+      els.logoutBtn.classList.toggle('hidden', !isOwner);
+      sessionStorage.setItem('games-owner-mode', String(isOwner));
+      if (isOwner) sessionStorage.setItem('games-owner-password', ownerPassword);
+      else sessionStorage.removeItem('games-owner-password');
+    }
+
+    function sortGames(list) {
+      const sorted = [...list];
+      const mode = els.sort.value;
+      if (mode === 'new') sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      if (mode === 'old') sorted.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      if (mode === 'rating-desc') sorted.sort((a, b) => (Number(b.rating) || -1) - (Number(a.rating) || -1));
+      if (mode === 'rating-asc') sorted.sort((a, b) => (Number(a.rating) || 999) - (Number(b.rating) || 999));
+      if (mode === 'name-asc') sorted.sort((a, b) => getDisplayTitle(a).localeCompare(getDisplayTitle(b), 'ru'));
+      return sorted;
+    }
+
+    function renderGames() {
+      const query = els.search.value.trim().toLowerCase();
+      const filter = els.filter.value;
+      let filtered = games.filter((game) => getDisplayTitle(game).toLowerCase().includes(query));
+      if (filter === 'favorites') filtered = filtered.filter((game) => game.favorite);
+      if (filter === 'high') filtered = filtered.filter((game) => Number(game.rating) >= 8);
+      filtered = sortGames(filtered);
+
+      els.gamesCount.textContent = games.length;
+      els.favoritesCount.textContent = games.filter((g) => g.favorite).length;
+
+      if (!filtered.length) {
+        els.gamesGrid.innerHTML = `<div class="empty"><h3>Игры не найдены</h3><p>Попробуй изменить поиск, фильтр или добавь новую игру.</p></div>`;
+        return;
+      }
+
+      els.gamesGrid.innerHTML = filtered.map((game) => `
+        <article class="card">
+          <div class="card-image" style="background-image:url('${String(game.image || '').replace(/'/g, '%27')}')">
+            <div class="favorite" onclick="toggleFavorite('${game.id}')">${game.favorite ? '★' : '☆'}</div>
+            <div class="rating">⭐ ${escapeHtml(getDisplayRating(game))}${getDisplayRating(game) !== '—' ? '/10' : ''}</div>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">${escapeHtml(getDisplayTitle(game))}</h3>
+            <div class="meta">
+              <span class="chip">${escapeHtml(getDisplayGenre(game))}</span>
+              <span class="chip">${escapeHtml(getDisplayPlatform(game))}</span>
+            </div>
+            <div class="desc">${escapeHtml(getDisplayDescription(game))}</div>
+            ${game.htmlContent ? `<div class="file-badge">HTML: ${escapeHtml(game.htmlFileName || 'game.html')}</div>` : ''}
+            <div class="actions">
+              <button class="mini-btn" onclick="toggleFavorite('${game.id}')">${game.favorite ? 'Убрать из избранного' : 'В избранное'}</button>
+              <button class="mini-btn" onclick="openViewPage('${game.id}')">Открыть страницу</button>
+              ${game.htmlContent ? `<button class="mini-btn" onclick="openGameHtml('${game.id}')">Открыть HTML</button>` : ''}
+              ${isOwner ? `<button class="mini-btn" onclick="editGame('${game.id}')">Редактировать</button>` : ''}
+              ${isOwner ? `<button class="mini-btn delete" onclick="deleteGame('${game.id}')">Удалить</button>` : ''}
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderViewPage(id) {
+      const game = games.find((g) => g.id === id);
+      if (!game) return;
+      els.viewBanner.style.backgroundImage = `url('${String(game.image || '').replace(/'/g, '%27')}')`;
+      els.viewTitle.textContent = getDisplayTitle(game);
+      els.viewBadge.textContent = game.favorite ? '⭐ Любимая игра' : '🎮 Просмотр игры';
+      els.viewDescription.textContent = getDisplayDescription(game);
+      els.viewMeta.innerHTML = `
+        <span class="chip">${escapeHtml(getDisplayGenre(game))}</span>
+        <span class="chip">${escapeHtml(getDisplayPlatform(game))}</span>
+        <span class="chip">Рейтинг: ${escapeHtml(getDisplayRating(game))}${getDisplayRating(game) !== '—' ? '/10' : ''}</span>
+      `;
+      els.viewFavoriteBtn.textContent = game.favorite ? 'Убрать из избранного' : 'В избранное';
+      els.openAttachedHtmlBtn.classList.toggle('hidden', !game.htmlContent);
+      els.editFromViewBtn.classList.toggle('hidden', !isOwner);
+    }
+
+    function openViewPage(id, updateRoute = true) {
+      viewingId = id;
+      renderViewPage(id);
+      setPage('view');
+      if (updateRoute) updateHash(`#view-${id}`);
+    }
+
+    function resetForm() {
+      editingId = null;
+      tempImageData = '';
+      tempHtmlContent = '';
+      tempHtmlFileName = '';
+      els.gameForm.reset();
+      els.formTitle.textContent = 'Добавить игру';
+      els.submitBtn.textContent = '+ Добавить игру';
+      els.cancelEditBtn.classList.add('hidden');
+    }
+
+    async function toggleFavorite(id) {
+      const game = games.find((g) => g.id === id);
+      if (!game) return;
+
+      if (isOwner) {
+        const updated = await api(`/api/games/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ favorite: !game.favorite })
+        });
+        games = games.map((g) => g.id === id ? normalizeGameData(updated) : g);
+      } else {
+        games = games.map((g) => g.id === id ? { ...g, favorite: !g.favorite } : g);
+      }
+
+      renderGames();
+      if (viewingId === id) renderViewPage(id);
+    }
+
+    async function deleteGame(id) {
+      if (!isOwner) return alert('Удалять игры может только владелец.');
+      if (!confirm('Удалить эту игру?')) return;
+      await api(`/api/games/${id}`, { method: 'DELETE' });
+      await loadGames();
+      if (viewingId === id) {
+        viewingId = null;
+        setPage('catalog');
+        updateHash('#catalog');
+      }
+    }
+
+    function editGame(id) {
+      const game = games.find((g) => g.id === id);
+      if (!game || !isOwner) return;
+      setPage('catalog');
+      updateHash('#catalog');
+      editingId = id;
+      els.formTitle.textContent = 'Редактировать игру';
+      els.submitBtn.textContent = 'Сохранить изменения';
+      els.cancelEditBtn.classList.remove('hidden');
+      els.title.value = game.title || '';
+      els.genre.value = game.genre || '';
+      els.platform.value = game.platform || '';
+      els.rating.value = game.rating ?? '';
+      els.image.value = game.image && !String(game.image).startsWith('data:image') ? game.image : '';
+      els.description.value = game.description || '';
+      tempImageData = game.image && String(game.image).startsWith('data:image') ? game.image : '';
+      tempHtmlContent = game.htmlContent || '';
+      tempHtmlFileName = game.htmlFileName || '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openGameHtml(id) {
+      const game = games.find((g) => g.id === id);
+      if (!game || !game.htmlContent) return;
+      const blob = new Blob([game.htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    }
+
+    async function loginAsOwner(password) {
+      try {
+        await api('/api/login', {
+          method: 'POST',
+          headers: {},
+          body: JSON.stringify({ password })
+        });
+        isOwner = true;
+        ownerPassword = password;
+        updateOwnerUI();
+        setPage('catalog');
+        updateHash('#catalog');
+        await loadGames();
+        els.loginPassword.value = '';
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    function handleInitialRoute() {
+      const hash = location.hash || '#catalog';
+      if (hash === '#login') {
+        setPage('login');
+      } else if (hash.startsWith('#view-')) {
+        const id = hash.replace('#view-', '');
+        if (games.find((g) => g.id === id)) {
+          openViewPage(id, false);
+        } else {
+          setPage('catalog');
+          updateHash('#catalog');
+        }
+      } else {
+        setPage('catalog');
+      }
+    }
+
+    function handleImportFile(e, endpoint, successText) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const imported = JSON.parse(reader.result);
+          if (!Array.isArray(imported)) throw new Error('Нужен JSON-массив');
+          await api(endpoint, {
+            method: 'POST',
+            body: JSON.stringify(imported.map(normalizeGameData))
+          });
+          await loadGames();
+          alert(successText);
+        } catch (error) {
+          alert(error.message || 'Ошибка импорта');
+        }
+      };
+      reader.readAsText(file, 'utf-8');
+      e.target.value = '';
+    }
+
+    els.themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyTheme();
+    });
+    els.viewThemeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyTheme();
+    });
+    els.openLoginBtn.addEventListener('click', () => {
+      setPage('login');
+      updateHash('#login');
+    });
+    els.backCatalogBtn.addEventListener('click', () => {
+      setPage('catalog');
+      updateHash('#catalog');
+    });
+    els.loginBtn.addEventListener('click', () => loginAsOwner(els.loginPassword.value));
+    els.loginPassword.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') loginAsOwner(els.loginPassword.value);
+    });
+    els.logoutBtn.addEventListener('click', () => {
+      isOwner = false;
+      ownerPassword = '';
+      updateOwnerUI();
+      resetForm();
+      setPage('catalog');
+      updateHash('#catalog');
+    });
+    els.cancelEditBtn.addEventListener('click', resetForm);
+    els.imageFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => { tempImageData = reader.result; };
+      reader.readAsDataURL(file);
+    });
+    els.htmlFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        tempHtmlContent = String(reader.result || '');
+        tempHtmlFileName = file.name;
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    els.gameForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!isOwner) return alert('Добавлять игры может только владелец.');
+
+      const ratingValue = els.rating.value === '' ? '' : Math.min(10, Math.max(1, Number(els.rating.value)));
+      const payload = {
+        title: els.title.value.trim(),
+        genre: els.genre.value.trim(),
+        platform: els.platform.value.trim(),
+        rating: ratingValue,
+        image: tempImageData || els.image.value.trim() || '',
+        description: els.description.value.trim(),
+        htmlContent: tempHtmlContent || '',
+        htmlFileName: tempHtmlFileName || '',
+      };
+
+      try {
+        if (editingId) {
+          await api(`/api/games/${editingId}`, {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+          });
+        } else {
+          await api('/api/games', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          });
+        }
+        resetForm();
+        await loadGames();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    els.importBtn.addEventListener('click', () => {
+      if (!isOwner) return alert('Импорт доступен только владельцу.');
+      els.importFile.click();
+    });
+    els.importBtn.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      if (!isOwner) return alert('Импорт доступен только владельцу.');
+      els.bulkImportFile.click();
+    });
+
+    els.importFile.addEventListener('change', (e) => handleImportFile(e, '/api/import-replace', 'Игры импортированы.'));
+    els.bulkImportFile.addEventListener('change', (e) => handleImportFile(e, '/api/import-add', 'Игры добавлены.'));
+
+    els.exportBtn.addEventListener('click', async () => {
+      const data = await api('/api/games', { method: 'GET', headers: {} });
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'games.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    els.clearBtn.addEventListener('click', async () => {
+      if (!isOwner) return alert('Очистка доступна только владельцу.');
+      if (!confirm('Точно удалить все игры?')) return;
+      await api('/api/import-replace', { method: 'POST', body: JSON.stringify([]) });
+      await loadGames();
+      resetForm();
+    });
+
+    els.search.addEventListener('input', renderGames);
+    els.filter.addEventListener('change', renderGames);
+    els.sort.addEventListener('change', renderGames);
+    els.backToCatalogBtn.addEventListener('click', () => {
+      setPage('catalog');
+      updateHash('#catalog');
+      renderGames();
+    });
+    els.viewFavoriteBtn.addEventListener('click', () => viewingId && toggleFavorite(viewingId));
+    els.openAttachedHtmlBtn.addEventListener('click', () => viewingId && openGameHtml(viewingId));
+    els.editFromViewBtn.addEventListener('click', () => viewingId && editGame(viewingId));
+
+    window.addEventListener('hashchange', handleInitialRoute);
+    window.toggleFavorite = toggleFavorite;
+    window.deleteGame = deleteGame;
+    window.editGame = editGame;
+    window.openGameHtml = openGameHtml;
+    window.openViewPage = openViewPage;
+
+    applyTheme();
+    updateOwnerUI();
+    loadGames().then(handleInitialRoute);
+  </script>
+</body>
+</html>

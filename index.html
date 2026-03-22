@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Portal Ultimate</title>
+  <style>
+    :root{
+      --bg:#07111f;
+      --bg2:#0d1b2f;
+      --card:rgba(255,255,255,.08);
+      --card2:rgba(255,255,255,.12);
+      --line:rgba(255,255,255,.12);
+      --text:#f8fbff;
+      --muted:#b8c7dc;
+      --accent:#7c5cff;
+      --accent2:#00d4ff;
+      --good:#31d98b;
+      --danger:#ff5f7a;
+      --gold:#ffd34d;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+      --radius:24px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124,92,255,.22), transparent 28%),
+        radial-gradient(circle at top right, rgba(0,212,255,.14), transparent 20%),
+        linear-gradient(135deg,var(--bg),var(--bg2) 55%, #050b14);
+      min-height:100vh;
+    }
+    .container{width:min(1280px, calc(100% - 28px)); margin:0 auto; padding:24px 0 40px;}
+    .topbar{
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+      flex-wrap:wrap; margin-bottom:18px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:14px; font-weight:900; font-size:24px;
+    }
+    .logo{
+      width:56px; height:56px; border-radius:18px; display:grid; place-items:center;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      box-shadow:var(--shadow); font-size:28px;
+    }
+    .nav{display:flex; gap:10px; flex-wrap:wrap}
+    .nav a,.btn{
+      text-decoration:none; color:var(--text); border:1px solid var(--line);
+      background:var(--card); padding:12px 16px; border-radius:16px; cursor:pointer;
+      backdrop-filter:blur(10px); box-shadow:var(--shadow); font-weight:700;
+    }
+    .btn.primary{
+      background:linear-gradient(135deg,var(--accent),#4b7dff);
+      border:none;
+    }
+    .hero{
+      display:grid; grid-template-columns:1.2fr .8fr; gap:20px; margin-bottom:22px;
+    }
+    .glass{
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+      backdrop-filter:blur(14px); box-shadow:var(--shadow);
+    }
+    .hero-left,.hero-right{padding:28px;}
+    .badge{
+      display:inline-flex; gap:8px; align-items:center; padding:8px 14px;
+      border-radius:999px; background:rgba(124,92,255,.18); border:1px solid rgba(124,92,255,.35);
+      margin-bottom:16px; font-size:13px; color:#e9e4ff;
+    }
+    h1{
+      margin:0 0 12px; font-size:clamp(34px,5vw,58px); line-height:1.02; letter-spacing:-.03em;
+    }
+    .muted{color:var(--muted); line-height:1.6}
+    .hero-stats{
+      display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:18px;
+    }
+    .stat{
+      padding:18px; border-radius:20px; background:var(--card2); border:1px solid var(--line);
+    }
+    .stat strong{display:block; font-size:28px; margin-bottom:6px}
+    .auth-box h3,.leader h3{margin:0 0 12px}
+    .auth-box input, .auth-box select{
+      width:100%; margin-bottom:10px; border:none; outline:none; color:var(--text);
+      background:rgba(255,255,255,.07); border:1px solid var(--line); border-radius:16px;
+      padding:14px 14px; font-size:15px;
+    }
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .app.hidden,.auth.hidden{display:none}
+    .leader{
+      margin-top:14px; padding:16px; background:rgba(255,255,255,.05); border-radius:20px; border:1px solid var(--line);
+    }
+    .leader ol{margin:0; padding-left:22px}
+    .leader li{padding:7px 0; color:var(--muted)}
+    .layout{display:grid; grid-template-columns:320px 1fr; gap:20px}
+    .sidebar,.content{padding:22px}
+    .profile-card{
+      padding:18px; border-radius:20px; background:var(--card2); border:1px solid var(--line);
+      margin-bottom:14px;
+    }
+    .avatar{
+      width:72px; height:72px; border-radius:20px; display:grid; place-items:center;
+      font-size:36px; background:linear-gradient(135deg,var(--accent),var(--accent2));
+      box-shadow:var(--shadow); margin-bottom:12px;
+    }
+    .score-big{font-size:34px; font-weight:900; margin:6px 0}
+    .small{font-size:13px; color:var(--muted)}
+    .mini-actions{display:grid; gap:10px}
+    .grid{
+      display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
+    }
+    .game-card{
+      padding:18px; position:relative; overflow:hidden;
+      transition:transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .game-card:hover{transform:translateY(-4px); background:var(--card2)}
+    .game-icon{
+      width:68px; height:68px; border-radius:20px; display:grid; place-items:center;
+      font-size:34px; margin-bottom:14px; background:rgba(255,255,255,.08); border:1px solid var(--line);
+    }
+    .game-title{font-size:22px; font-weight:900; margin-bottom:8px}
+    .game-desc{color:var(--muted); line-height:1.5; min-height:48px}
+    .card-actions{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap}
+    .play-btn,.ghost-btn{
+      border:none; border-radius:14px; padding:12px 15px; font-weight:800; cursor:pointer;
+    }
+    .play-btn{background:linear-gradient(135deg,var(--accent),#5687ff); color:white}
+    .ghost-btn{background:rgba(255,255,255,.08); color:var(--text); border:1px solid var(--line)}
+    .section-title{
+      display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:16px;
+    }
+    .footer{
+      margin-top:24px; text-align:center; color:var(--muted); font-size:14px;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
+      border-radius:999px; background:rgba(49,217,139,.12); border:1px solid rgba(49,217,139,.22); color:#b8ffe0;
+    }
+    .top-score{color:var(--gold); font-weight:800}
+    @media (max-width:1050px){
+      .hero,.layout{grid-template-columns:1fr}
+      .grid{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width:680px){
+      .grid,.hero-stats,.row{grid-template-columns:1fr}
+      .brand{font-size:20px}
+      .topbar{align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">🎮</div>
+        <div>Game Portal</div>
+      </div>
+      <div class="nav">
+        <a href="#games">Игры</a>
+        <a href="#leaderboard">Рейтинг</a>
+        <a href="#profile">Профиль</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="glass hero-left">
+        <div class="badge">🔥 Игровой портал</div>
+        <h1>Все игры в одном сайте</h1>
+        <div class="muted">
+          Игры в один красивый портал. Cохранение очков и большое меню игр в одном стиле.
+        </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <strong id="gamesCount">8</strong>
+            <span class="small">игр внутри сайта</span>
+          </div>
+          <div class="stat">
+            <strong id="playersCount">0</strong>
+            <span class="small">игроков в таблице</span>
+          </div>
+          <div class="stat">
+            <strong id="totalScore">0</strong>
+            <span class="small">общих очков</span>
+          </div>
+          <div class="stat">
+            <strong id="bestPlayer">—</strong>
+            <span class="small">лучший игрок</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass hero-right">
+        <div class="auth auth-box" id="authBox">
+          <h3>🔐 Вход / Регистрация</h3>
+          <input id="login" placeholder="Логин">
+          <input id="pass" type="password" placeholder="Пароль">
+          <select id="avatarSelect">
+            <option value="😎">😎 Аватар: Крутой</option>
+            <option value="👾">👾 Аватар: Геймер</option>
+            <option value="🐱">🐱 Аватар: Кот</option>
+            <option value="🔥">🔥 Аватар: Огонь</option>
+            <option value="🚀">🚀 Аватар: Ракета</option>
+          </select>
+          <div class="row">
+            <button class="btn primary" onclick="register()">Регистрация</button>
+            <button class="btn" onclick="login()">Вход</button>
+          </div>
+
+          <div class="leader" id="leaderboard">
+            <h3>🏆 Таблица лидеров</h3>
+            <ol id="leaderList"></ol>
+          </div>
+        </div>
+
+        <div class="app hidden" id="appBox">
+          <div class="profile-card">
+            <div class="avatar" id="profileAvatar">😎</div>
+            <div class="small">Игрок</div>
+            <div style="font-size:22px;font-weight:900" id="profileName">Гость</div>
+            <div class="score-big"><span id="profileScore">0</span> очков</div>
+            <div class="chip">💾 Прогресс сохраняется в браузере</div>
+          </div>
+          <div class="mini-actions">
+            <button class="btn primary" onclick="logout()">Выйти</button>
+            <button class="btn" onclick="openTopGame()">Запустить лучшую игру</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="glass sidebar" id="profile">
+        <div class="section-title">
+          <h2 style="margin:0">👤 Профиль</h2>
+          <span class="chip"></span>
+        </div>
+        <div class="profile-card">
+          <div class="small">Текущий игрок</div>
+          <div style="font-size:20px;font-weight:900;margin:6px 0" id="sideName">Не вошёл</div>
+          <div class="small">Аватар</div>
+          <div style="font-size:36px;margin:8px 0" id="sideAvatar">🎮</div>
+          <div class="small">Всего очков</div>
+          <div style="font-size:30px;font-weight:900;margin:8px 0" id="sideScore">0</div>
+          <div class="small">Последняя игра</div>
+          <div style="font-weight:800;margin-top:6px" id="lastGame">—</div>
+        </div>
+        <div class="leader">
+          <h3 style="margin-top:0">⭐ Топ-5 игроков</h3>
+          <ol id="leaderListSide"></ol>
+        </div>
+      </aside>
+
+      <main class="glass content" id="games">
+        <div class="section-title">
+          <h2 style="margin:0">🕹 Каталог игр</h2>
+          <span class="chip">Нажми «Играть»</span>
+        </div>
+
+        <div class="grid" id="gamesGrid"></div>
+      </main>
+    </section>
+
+    <div class="footer">
+      Создатель V. Barbaris
+    </div>
+  </div>
+
+  <script>
+    const GAME_LIST = [
+      {file:"птичка.html", title:"Птичка", icon:"🐦", desc:"Лети между трубами и ставь рекорды"},
+      {file:"слова.html", title:"Слова", icon:"🔤", desc:"Собирай слова и проходи уровни"},
+      {file:"тортик.html", title:"Тортик", icon:"🎂", desc:"Строй башню из тортов и побеждай"},
+      {file:"шарики.html", title:"Шарики", icon:"🎈", desc:"Разбивай блоки и собирай очки"},
+      {file:"Загадки.html", title:"Загадки", icon:"❓", desc:"Отвечай на загадки и прокачивай ум"},
+      {file:"Змейка2.html", title:"Змейка", icon:"🐍", desc:"Классическая змейка в красивом стиле"},
+      {file:"зомби.html", title:"Зомби", icon:"🧟", desc:"Сражайся с волнами зомби"},
+      {file:"Игры.html", title:"Игры JSON", icon:"🎮", desc:"Дополнительная игровая страница"}
+    ];
+
+    function getUsers(){
+      return JSON.parse(localStorage.getItem("gp_users") || "{}");
+    }
+    function setUsers(users){
+      localStorage.setItem("gp_users", JSON.stringify(users));
+    }
+    function getSession(){
+      return localStorage.getItem("gp_session");
+    }
+    function setSession(name){
+      localStorage.setItem("gp_session", name);
+    }
+    function getCurrentUser(){
+      const users = getUsers();
+      const session = getSession();
+      return session && users[session] ? users[session] : null;
+    }
+    function renderStats(){
+      const users = getUsers();
+      const entries = Object.entries(users).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
+      document.getElementById("playersCount").textContent = entries.length;
+      document.getElementById("totalScore").textContent = entries.reduce((s,[,u])=>s+(u.score||0),0);
+      document.getElementById("bestPlayer").textContent = entries[0] ? entries[0][0] : "—";
+      const lists = [document.getElementById("leaderList"), document.getElementById("leaderListSide")];
+      lists.forEach(list=>{
+        list.innerHTML = "";
+        if(!entries.length){
+          const li = document.createElement("li");
+          li.textContent = "Пока нет игроков";
+          list.appendChild(li);
+          return;
+        }
+        entries.slice(0,5).forEach(([name,data],i)=>{
+          const li = document.createElement("li");
+          li.innerHTML = `<span class="top-score">${i+1}.</span> ${data.avatar || "🎮"} ${name} — <b>${data.score||0}</b>`;
+          list.appendChild(li);
+        });
+      });
+    }
+
+    function register(){
+      const login = document.getElementById("login").value.trim();
+      const pass = document.getElementById("pass").value.trim();
+      const avatar = document.getElementById("avatarSelect").value;
+      if(!login || !pass){
+        alert("Введи логин и пароль");
+        return;
+      }
+      const users = getUsers();
+      if(users[login]){
+        alert("Такой игрок уже существует");
+        return;
+      }
+      users[login] = {password:pass, avatar, score:0, lastGame:"—"};
+      setUsers(users);
+      setSession(login);
+      renderAll();
+      alert("Аккаунт создан");
+    }
+
+    function login(){
+      const login = document.getElementById("login").value.trim();
+      const pass = document.getElementById("pass").value.trim();
+      const users = getUsers();
+      if(users[login] && users[login].password === pass){
+        setSession(login);
+        renderAll();
+      }else{
+        alert("Неверный логин или пароль");
+      }
+    }
+
+    function logout(){
+      localStorage.removeItem("gp_session");
+      renderAll();
+    }
+
+    function addScore(points, gameTitle){
+      const users = getUsers();
+      const session = getSession();
+      if(!session || !users[session]) return;
+      users[session].score = (users[session].score || 0) + points;
+      users[session].lastGame = gameTitle;
+      setUsers(users);
+      renderAll();
+    }
+
+    function playGame(file, title){
+      if(!getSession()){
+        alert("Сначала войди или зарегистрируйся");
+        return;
+      }
+      addScore(1, title);
+      window.location.href = file;
+    }
+
+    function openTopGame(){
+      playGame("зомби.html", "Зомби");
+    }
+
+    function renderProfile(){
+      const current = getCurrentUser();
+      const authBox = document.getElementById("authBox");
+      const appBox = document.getElementById("appBox");
+      if(current){
+        authBox.classList.add("hidden");
+        appBox.classList.remove("hidden");
+        const name = getSession();
+        document.getElementById("profileAvatar").textContent = current.avatar || "🎮";
+        document.getElementById("profileName").textContent = name;
+        document.getElementById("profileScore").textContent = current.score || 0;
+        document.getElementById("sideName").textContent = name;
+        document.getElementById("sideAvatar").textContent = current.avatar || "🎮";
+        document.getElementById("sideScore").textContent = current.score || 0;
+        document.getElementById("lastGame").textContent = current.lastGame || "—";
+      }else{
+        authBox.classList.remove("hidden");
+        appBox.classList.add("hidden");
+        document.getElementById("sideName").textContent = "Не вошёл";
+        document.getElementById("sideAvatar").textContent = "🎮";
+        document.getElementById("sideScore").textContent = "0";
+        document.getElementById("lastGame").textContent = "—";
+      }
+    }
+
+    function renderGames(){
+      const grid = document.getElementById("gamesGrid");
+      grid.innerHTML = "";
+      GAME_LIST.forEach(game=>{
+        const card = document.createElement("div");
+        card.className = "glass game-card";
+        card.innerHTML = `
+          <div class="game-icon">${game.icon}</div>
+          <div class="game-title">${game.title}</div>
+          <div class="game-desc">${game.desc}</div>
+          <div class="card-actions">
+            <button class="play-btn" onclick="playGame('${game.file}','${game.title.replace(/'/g,"\'")}')">Играть</button>
+            <a class="ghost-btn" style="text-decoration:none" href="${game.file}">Открыть</a>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderAll(){
+      renderGames();
+      renderProfile();
+      renderStats();
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>

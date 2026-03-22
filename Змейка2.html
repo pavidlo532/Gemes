@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Змейка</title>
+  <style>
+    :root {
+      --body-bg: linear-gradient(180deg, #0f172a, #020617);
+      --text-color: white;
+      --panel-bg: rgba(255,255,255,0.06);
+      --panel-border: rgba(255,255,255,0.12);
+      --secondary-btn: #334155;
+      --danger-btn: #ef4444;
+      --canvas-border: rgba(255,255,255,0.1);
+      --canvas-shadow: 0 20px 60px rgba(0,0,0,0.45);
+      --info-color: #cbd5e1;
+      --mobile-btn-bg: rgba(255,255,255,0.1);
+      --mobile-btn-border: rgba(255,255,255,0.08);
+      --overlay-bg: rgba(0,0,0,0.45);
+      --overlay-box-bg: rgba(15,23,42,0.92);
+      --overlay-box-border: rgba(255,255,255,0.12);
+      --overlay-text: #cbd5e1;
+      --primary-btn: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--body-bg);
+      font-family: Arial, sans-serif;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    .game-wrap {
+      width: min(95vw, 520px);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .top-panel {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 12px 14px;
+      backdrop-filter: blur(8px);
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+
+    .stats {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .controls-line {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      background: var(--primary-btn);
+      color: white;
+      transition: 0.2s, background 0.25s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .secondary {
+      background: var(--secondary-btn);
+    }
+
+    .danger {
+      background: var(--danger-btn);
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 520px;
+      aspect-ratio: 1 / 1;
+      background: #0b1220;
+      border: 3px solid var(--canvas-border);
+      border-radius: 18px;
+      box-shadow: var(--canvas-shadow);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .info {
+      text-align: center;
+      font-size: 14px;
+      color: var(--info-color);
+      line-height: 1.5;
+      transition: color 0.25s ease;
+    }
+
+    .mobile-controls {
+      display: grid;
+      grid-template-columns: 70px 70px 70px;
+      grid-template-rows: 70px 70px;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 6px;
+    }
+
+    .mobile-controls button {
+      font-size: 24px;
+      border-radius: 16px;
+      background: var(--mobile-btn-bg);
+      border: 1px solid var(--mobile-btn-border);
+      color: var(--text-color);
+    }
+
+    .mobile-controls .up {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .mobile-controls .left {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .mobile-controls .down {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .mobile-controls .right {
+      grid-column: 3;
+      grid-row: 2;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      background: var(--overlay-bg);
+      border-radius: 18px;
+      transition: background 0.25s ease;
+    }
+
+    .canvas-wrap {
+      width: 100%;
+      position: relative;
+    }
+
+    .overlay-box {
+      background: var(--overlay-box-bg);
+      border: 1px solid var(--overlay-box-border);
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 320px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.45);
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+
+    .overlay-box h2 {
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .overlay-box p {
+      margin-bottom: 14px;
+      color: var(--overlay-text);
+      line-height: 1.5;
+      transition: color 0.25s ease;
+    }
+
+    @media (min-width: 800px) {
+      .mobile-controls {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-wrap">
+    <div class="top-panel">
+      <div class="stats">
+        <div>Счёт: <span id="score">0</span></div>
+        <div>Рекорд: <span id="best">0</span></div>
+        <div>Скорость: <span id="speedText">1</span></div>
+      </div>
+
+      <div class="controls-line">
+        <button id="startBtn">Старт</button>
+        <button id="pauseBtn" class="secondary">Пауза</button>
+        <button id="restartBtn" class="danger">Заново</button>
+        <button id="themeBtn" class="secondary">Тема</button>
+      </div>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="game" width="520" height="520"></canvas>
+
+      <div class="overlay" id="overlay">
+        <div class="overlay-box">
+          <h2 id="overlayTitle">Змейка</h2>
+          <p id="overlayText">Нажми "Старт" или пробел, чтобы начать игру.</p>
+          <button id="overlayBtn">Играть</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="info">
+      Управление: стрелки или WASD.<br>
+      На телефоне используй кнопки ниже.
+      Создатель Виталя Барбарис.
+    </div>
+
+    <div class="mobile-controls">
+      <button class="up" data-dir="up">▲</button>
+      <button class="left" data-dir="left">◀</button>
+      <button class="down" data-dir="down">▼</button>
+      <button class="right" data-dir="right">▶</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const scoreEl = document.getElementById("score");
+    const bestEl = document.getElementById("best");
+    const speedTextEl = document.getElementById("speedText");
+
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const themeBtn = document.getElementById("themeBtn");
+
+    const overlay = document.getElementById("overlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlayText = document.getElementById("overlayText");
+    const overlayBtn = document.getElementById("overlayBtn");
+
+    const gridCount = 20;
+    const cellSize = canvas.width / gridCount;
+
+    const themes = [
+      {
+        name: "Неон",
+        bodyBg: "linear-gradient(180deg, #0f172a, #020617)",
+        textColor: "#ffffff",
+        panelBg: "rgba(255,255,255,0.06)",
+        panelBorder: "rgba(255,255,255,0.12)",
+        primaryBtn: "#22c55e",
+        secondaryBtn: "#334155",
+        dangerBtn: "#ef4444",
+        canvasBorder: "rgba(255,255,255,0.1)",
+        infoColor: "#cbd5e1",
+        mobileBtnBg: "rgba(255,255,255,0.1)",
+        mobileBtnBorder: "rgba(255,255,255,0.08)",
+        overlayBg: "rgba(0,0,0,0.45)",
+        overlayBoxBg: "rgba(15,23,42,0.92)",
+        overlayBoxBorder: "rgba(255,255,255,0.12)",
+        overlayText: "#cbd5e1",
+        board1: "#0f172a",
+        board2: "#111827",
+        food: "#ef4444",
+        foodLeaf: "#22c55e",
+        snakeHead: "#22c55e",
+        snakeBody: "#16a34a",
+        snakeEyes: "#ffffff"
+      },
+      {
+        name: "Океан",
+        bodyBg: "linear-gradient(180deg, #082f49, #041c32)",
+        textColor: "#e0f2fe",
+        panelBg: "rgba(125,211,252,0.08)",
+        panelBorder: "rgba(125,211,252,0.18)",
+        primaryBtn: "#0ea5e9",
+        secondaryBtn: "#155e75",
+        dangerBtn: "#ef4444",
+        canvasBorder: "rgba(125,211,252,0.2)",
+        infoColor: "#bae6fd",
+        mobileBtnBg: "rgba(125,211,252,0.12)",
+        mobileBtnBorder: "rgba(125,211,252,0.18)",
+        overlayBg: "rgba(0,25,45,0.5)",
+        overlayBoxBg: "rgba(8,47,73,0.94)",
+        overlayBoxBorder: "rgba(125,211,252,0.2)",
+        overlayText: "#bae6fd",
+        board1: "#082f49",
+        board2: "#0c4a6e",
+        food: "#f97316",
+        foodLeaf: "#84cc16",
+        snakeHead: "#38bdf8",
+        snakeBody: "#0ea5e9",
+        snakeEyes: "#ffffff"
+      },
+      {
+        name: "Светлая",
+        bodyBg: "linear-gradient(180deg, #f8fafc, #e2e8f0)",
+        textColor: "#0f172a",
+        panelBg: "rgba(255,255,255,0.75)",
+        panelBorder: "rgba(148,163,184,0.35)",
+        primaryBtn: "#22c55e",
+        secondaryBtn: "#64748b",
+        dangerBtn: "#ef4444",
+        canvasBorder: "rgba(100,116,139,0.25)",
+        infoColor: "#475569",
+        mobileBtnBg: "rgba(255,255,255,0.8)",
+        mobileBtnBorder: "rgba(148,163,184,0.3)",
+        overlayBg: "rgba(148,163,184,0.35)",
+        overlayBoxBg: "rgba(255,255,255,0.96)",
+        overlayBoxBorder: "rgba(148,163,184,0.35)",
+        overlayText: "#475569",
+        board1: "#e2e8f0",
+        board2: "#cbd5e1",
+        food: "#dc2626",
+        foodLeaf: "#16a34a",
+        snakeHead: "#22c55e",
+        snakeBody: "#15803d",
+        snakeEyes: "#ffffff"
+      },
+      {
+        name: "Фиолет",
+        bodyBg: "linear-gradient(180deg, #1e1b4b, #09090b)",
+        textColor: "#f5f3ff",
+        panelBg: "rgba(168,85,247,0.08)",
+        panelBorder: "rgba(168,85,247,0.2)",
+        primaryBtn: "#a855f7",
+        secondaryBtn: "#4c1d95",
+        dangerBtn: "#fb7185",
+        canvasBorder: "rgba(192,132,252,0.2)",
+        infoColor: "#ddd6fe",
+        mobileBtnBg: "rgba(168,85,247,0.12)",
+        mobileBtnBorder: "rgba(168,85,247,0.2)",
+        overlayBg: "rgba(20,10,35,0.55)",
+        overlayBoxBg: "rgba(30,27,75,0.95)",
+        overlayBoxBorder: "rgba(192,132,252,0.22)",
+        overlayText: "#ddd6fe",
+        board1: "#1e1b4b",
+        board2: "#312e81",
+        food: "#fb7185",
+        foodLeaf: "#22c55e",
+        snakeHead: "#c084fc",
+        snakeBody: "#9333ea",
+        snakeEyes: "#ffffff"
+      },
+      {
+        name: "Лава",
+        bodyBg: "linear-gradient(180deg, #2b0a0a, #120404)",
+        textColor: "#fff7ed",
+        panelBg: "rgba(251,146,60,0.08)",
+        panelBorder: "rgba(251,146,60,0.2)",
+        primaryBtn: "#f97316",
+        secondaryBtn: "#9a3412",
+        dangerBtn: "#dc2626",
+        canvasBorder: "rgba(251,146,60,0.2)",
+        infoColor: "#fed7aa",
+        mobileBtnBg: "rgba(251,146,60,0.12)",
+        mobileBtnBorder: "rgba(251,146,60,0.2)",
+        overlayBg: "rgba(30,8,0,0.55)",
+        overlayBoxBg: "rgba(60,18,0,0.95)",
+        overlayBoxBorder: "rgba(251,146,60,0.22)",
+        overlayText: "#fdba74",
+        board1: "#3b0a00",
+        board2: "#5c1b00",
+        food: "#fde047",
+        foodLeaf: "#84cc16",
+        snakeHead: "#fb923c",
+        snakeBody: "#ea580c",
+        snakeEyes: "#ffffff"
+      }
+    ];
+
+    let currentTheme = 0;
+
+    let snake = [];
+    let food = {};
+    let direction = "right";
+    let nextDirection = "right";
+    let score = 0;
+    let best = Number(localStorage.getItem("snake_best_score") || 0);
+    let gameLoop = null;
+    let speed = 140;
+    let running = false;
+    let paused = false;
+    let gameOver = false;
+
+    bestEl.textContent = best;
+
+    function applyTheme() {
+      const theme = themes[currentTheme];
+      const root = document.documentElement;
+
+      root.style.setProperty("--body-bg", theme.bodyBg);
+      root.style.setProperty("--text-color", theme.textColor);
+      root.style.setProperty("--panel-bg", theme.panelBg);
+      root.style.setProperty("--panel-border", theme.panelBorder);
+      root.style.setProperty("--primary-btn", theme.primaryBtn);
+      root.style.setProperty("--secondary-btn", theme.secondaryBtn);
+      root.style.setProperty("--danger-btn", theme.dangerBtn);
+      root.style.setProperty("--canvas-border", theme.canvasBorder);
+      root.style.setProperty("--info-color", theme.infoColor);
+      root.style.setProperty("--mobile-btn-bg", theme.mobileBtnBg);
+      root.style.setProperty("--mobile-btn-border", theme.mobileBtnBorder);
+      root.style.setProperty("--overlay-bg", theme.overlayBg);
+      root.style.setProperty("--overlay-box-bg", theme.overlayBoxBg);
+      root.style.setProperty("--overlay-box-border", theme.overlayBoxBorder);
+      root.style.setProperty("--overlay-text", theme.overlayText);
+
+      themeBtn.textContent = "Тема: " + theme.name;
+      draw();
+    }
+
+    function initGame() {
+      snake = [
+        { x: 8, y: 10 },
+        { x: 7, y: 10 },
+        { x: 6, y: 10 }
+      ];
+      direction = "right";
+      nextDirection = "right";
+      score = 0;
+      speed = 140;
+      paused = false;
+      gameOver = false;
+      updateScore();
+      spawnFood();
+      draw();
+    }
+
+    function updateScore() {
+      scoreEl.textContent = score;
+      speedTextEl.textContent = Math.max(1, Math.floor((160 - speed) / 10));
+      if (score > best) {
+        best = score;
+        localStorage.setItem("snake_best_score", best);
+        bestEl.textContent = best;
+      }
+    }
+
+    function spawnFood() {
+      let valid = false;
+      while (!valid) {
+        food = {
+          x: Math.floor(Math.random() * gridCount),
+          y: Math.floor(Math.random() * gridCount)
+        };
+        valid = !snake.some(part => part.x === food.x && part.y === food.y);
+      }
+    }
+
+    function startGame() {
+      if (running && !paused) return;
+
+      if (gameOver) {
+        initGame();
+      }
+
+      running = true;
+      paused = false;
+      hideOverlay();
+      clearInterval(gameLoop);
+      gameLoop = setInterval(tick, speed);
+    }
+
+    function pauseGame() {
+      if (!running || gameOver) return;
+      paused = !paused;
+
+      if (paused) {
+        clearInterval(gameLoop);
+        showOverlay("Пауза", "Игра поставлена на паузу.");
+      } else {
+        hideOverlay();
+        gameLoop = setInterval(tick, speed);
+      }
+    }
+
+    function restartGame() {
+      clearInterval(gameLoop);
+      running = false;
+      paused = false;
+      gameOver = false;
+      initGame();
+      showOverlay("Змейка", "Нажми 'Играть', чтобы начать заново.");
+    }
+
+    function tick() {
+      direction = nextDirection;
+
+      const head = { ...snake[0] };
+
+      if (direction === "up") head.y--;
+      if (direction === "down") head.y++;
+      if (direction === "left") head.x--;
+      if (direction === "right") head.x++;
+
+      if (
+        head.x < 0 ||
+        head.y < 0 ||
+        head.x >= gridCount ||
+        head.y >= gridCount ||
+        snake.some(part => part.x === head.x && part.y === head.y)
+      ) {
+        endGame();
+        return;
+      }
+
+      snake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        if (speed > 60) {
+          speed -= 4;
+          clearInterval(gameLoop);
+          gameLoop = setInterval(tick, speed);
+        }
+        updateScore();
+        spawnFood();
+      } else {
+        snake.pop();
+      }
+
+      draw();
+    }
+
+    function endGame() {
+      clearInterval(gameLoop);
+      running = false;
+      gameOver = true;
+      showOverlay("Игра окончена", "Твой счёт: " + score);
+    }
+
+    function setDirection(newDir) {
+      if (newDir === "up" && direction !== "down") nextDirection = "up";
+      if (newDir === "down" && direction !== "up") nextDirection = "down";
+      if (newDir === "left" && direction !== "right") nextDirection = "left";
+      if (newDir === "right" && direction !== "left") nextDirection = "right";
+    }
+
+    function drawBoard() {
+      const theme = themes[currentTheme];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let y = 0; y < gridCount; y++) {
+        for (let x = 0; x < gridCount; x++) {
+          ctx.fillStyle = (x + y) % 2 === 0 ? theme.board1 : theme.board2;
+          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    function drawFood() {
+      const theme = themes[currentTheme];
+      const px = food.x * cellSize;
+      const py = food.y * cellSize;
+      const r = cellSize * 0.32;
+
+      ctx.beginPath();
+      ctx.fillStyle = theme.food;
+      ctx.arc(px + cellSize / 2, py + cellSize / 2, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.fillStyle = theme.foodLeaf;
+      ctx.arc(px + cellSize / 2 + 4, py + cellSize / 2 - r + 2, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawSnake() {
+      const theme = themes[currentTheme];
+
+      snake.forEach((part, index) => {
+        const px = part.x * cellSize;
+        const py = part.y * cellSize;
+
+        ctx.fillStyle = index === 0 ? theme.snakeHead : theme.snakeBody;
+        roundRect(px + 2, py + 2, cellSize - 4, cellSize - 4, 8);
+        ctx.fill();
+
+        if (index === 0) {
+          ctx.fillStyle = theme.snakeEyes;
+
+          let eye1x = px + cellSize * 0.35;
+          let eye1y = py + cellSize * 0.35;
+          let eye2x = px + cellSize * 0.65;
+          let eye2y = py + cellSize * 0.35;
+
+          if (direction === "up") {
+            eye1x = px + cellSize * 0.35;
+            eye1y = py + cellSize * 0.3;
+            eye2x = px + cellSize * 0.65;
+            eye2y = py + cellSize * 0.3;
+          }
+          if (direction === "down") {
+            eye1x = px + cellSize * 0.35;
+            eye1y = py + cellSize * 0.7;
+            eye2x = px + cellSize * 0.65;
+            eye2y = py + cellSize * 0.7;
+          }
+          if (direction === "left") {
+            eye1x = px + cellSize * 0.3;
+            eye1y = py + cellSize * 0.35;
+            eye2x = px + cellSize * 0.3;
+            eye2y = py + cellSize * 0.65;
+          }
+          if (direction === "right") {
+            eye1x = px + cellSize * 0.7;
+            eye1y = py + cellSize * 0.35;
+            eye2x = px + cellSize * 0.7;
+            eye2y = py + cellSize * 0.65;
+          }
+
+          ctx.beginPath();
+          ctx.arc(eye1x, eye1y, 3, 0, Math.PI * 2);
+          ctx.arc(eye2x, eye2y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
+    function roundRect(x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    function draw() {
+      drawBoard();
+      drawFood();
+      drawSnake();
+    }
+
+    function showOverlay(title, text) {
+      overlayTitle.textContent = title;
+      overlayText.textContent = text;
+      overlay.style.display = "flex";
+    }
+
+    function hideOverlay() {
+      overlay.style.display = "none";
+    }
+
+    document.addEventListener("keydown", (e) => {
+      const key = e.key.toLowerCase();
+
+      if (key === "arrowup" || key === "w") setDirection("up");
+      if (key === "arrowdown" || key === "s") setDirection("down");
+      if (key === "arrowleft" || key === "a") setDirection("left");
+      if (key === "arrowright" || key === "d") setDirection("right");
+
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (!running || gameOver) startGame();
+        else pauseGame();
+      }
+    });
+
+    startBtn.addEventListener("click", startGame);
+    pauseBtn.addEventListener("click", pauseGame);
+    restartBtn.addEventListener("click", restartGame);
+    overlayBtn.addEventListener("click", startGame);
+
+    themeBtn.addEventListener("click", () => {
+      currentTheme++;
+      if (currentTheme >= themes.length) currentTheme = 0;
+      applyTheme();
+    });
+
+    document.querySelectorAll(".mobile-controls button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        setDirection(btn.dataset.dir);
+      });
+    });
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    canvas.addEventListener("touchstart", (e) => {
+      const t = e.changedTouches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+    }, { passive: true });
+
+    canvas.addEventListener("touchend", (e) => {
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 20) setDirection("right");
+        if (dx < -20) setDirection("left");
+      } else {
+        if (dy > 20) setDirection("down");
+        if (dy < -20) setDirection("up");
+      }
+    }, { passive: true });
+
+    applyTheme();
+    initGame();
+    showOverlay("Змейка", "Нажми 'Играть' или пробел, чтобы начать.");
+  </script>
+</body>
+</html>
